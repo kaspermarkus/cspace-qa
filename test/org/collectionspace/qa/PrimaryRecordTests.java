@@ -174,4 +174,60 @@ public class PrimaryRecordTests {
         textPresent("Found 0 records for " + uniqueID, selenium);
         assertFalse(selenium.isElementPresent("link="+uniqueID));
     }
+
+    /**
+     * TEST: Test Cancel button functionality
+     *
+     * 1) Create a new record and save
+     * 2) Fill out fields with known values
+     * 3) Save
+     * 4) Modify all fields
+     * 5) Click cancel
+     * X) Expect all values are back to their previous value
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void testCancel() throws Exception {
+        //create record and fill out all fields
+        String uniqueID = Record.getRecordTypeShort(primaryType) + (new Date().getTime());
+        createAndSave(primaryType, uniqueID, selenium);
+        fillForm(primaryType, uniqueID, selenium);
+        save(selenium);
+        //modify all fields
+        clearForm(primaryType, selenium);
+        //click cancel and expect content to change to original\n");
+        selenium.click("//input[@value='Cancel changes']");
+        verifyFill(primaryType, uniqueID, selenium);
+    }
+
+    /**
+     * TEST: Test leave page warnings
+     *
+     * 1) Create new record and save
+     * 2) Edit field and attempt to navigate away
+     * 3) Expect dialog and cancel it
+     * 4) Navigate away
+     * 5) Expect dialog and close it
+     * 6) Navigate away
+     * 7) Save Changes
+     * 8) Navigate away
+     * @throws Exception
+     */
+     @Test
+    public void testLeavePageWarning() throws Exception {
+        //create
+        String uniqueID = Record.getRecordTypeShort(primaryType) + (new Date().getTime());
+        String modifiedID = uniqueID+"modified";
+        createAndSave(primaryType, uniqueID, selenium);
+        //Test close and cancel buttons of dialog
+        navigateWarningClose(primaryType, modifiedID, selenium);
+        //Test 'Save' button - expect it was properly saved
+        navigateWarningSave(primaryType, modifiedID, selenium);
+        //go to the record again:
+        selenium.click("link=" + modifiedID);
+        waitForRecordLoad(selenium);
+        //Test 'Dont Save' button
+        navigateWarningDontSave(primaryType, uniqueID, selenium);
+    }
 }

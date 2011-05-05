@@ -46,6 +46,15 @@ public class Utilities {
         textPresent("successfully", selenium);
     }
 
+    /**
+     * Creates a record of recordType with the given id and saves it. The function
+     * returns once a successful save message is given
+     *
+     * @param recordType The Record.recordType to create
+     * @param id The desired value of the ID field
+     * @param selenium The selenium object which to run this on
+     * @throws Exception
+     */
     public static void createAndSave(int recordType, String id, Selenium selenium) throws Exception {
         //create new
         selenium.open(Record.getRecordTypeShort(recordType) + ".html");
@@ -55,6 +64,109 @@ public class Utilities {
         //and save
         selenium.click("//input[@value='Save']");
         textPresent("successfully", selenium);
+    }
+
+    /**
+     * Used for testing the close buttons (close/cancel) in the dialog that appears
+     * when navigating away from an edited page. This function:
+     * 1) Edit field
+     * 2) Click 'find and edit' tab
+     * X) Expect warning and click cancel
+     * 3) Click 'acquisition' tab
+     * X) Expect warning and click close
+     *
+     * PRE-REQUISITES: a record with the required fields should be filled out
+     *
+     * @param primaryType The record type we're testing on
+     * @param modifiedID The value to change the ID of the record to
+     * @param selenium The selenium object on which to run these actions
+     * @throws Exception
+     */
+    public static void navigateWarningClose(int primaryType, String modifiedID, Selenium selenium) throws Exception {
+        waitForRecordLoad(selenium);
+        //edit a field (ID field)
+        selenium.type(Record.getIDSelector(primaryType), modifiedID);
+        //navigate away
+        selenium.click("link=Find and Edit");
+        elementPresent("ui-dialog-title-1", selenium);
+        //expect warning and click cancel
+        assertTrue(selenium.isTextPresent("exact:Save Changes?"));
+        selenium.click("//input[@value='Cancel']");
+        //navigate away, expect warning dialog, close with top right close symbol
+        selenium.click("link=Acquisition");
+        elementPresent("ui-dialog-title-1", selenium);
+        assertTrue(selenium.isTextPresent("exact:Save Changes?"));
+        selenium.click("//img[@alt='close dialog']");
+    }
+
+    /**
+     * Used for testing the save button in the dialog that appears when navigating
+     * away from an edited page. This function:
+     * 1) Enter the modifiedID value into the ID field
+     * 2) Navigate away from page using the search - the thing we search for is the modifiedID
+     * X) Expect the warning dialog
+     * 3) Hit Save
+     * X) Expect exactly one result from search - that is the saved record with modified ID
+     *
+     * PRE-REQUISITES: a record with the required fields should be filled out
+     *
+     * @param primaryType The record type we're testing on
+     * @param modifiedID The value to change the ID of the record to
+     * @param selenium The selenium object on which to run these actions
+     * @throws Exception
+     */
+    public static void navigateWarningSave(int primaryType, String modifiedID, Selenium selenium) throws Exception {
+        waitForRecordLoad(selenium);
+        //edit field (ID field)
+        selenium.type(Record.getIDSelector(primaryType), modifiedID);
+        //Search for our ID (should cause warning too)
+        selenium.select("recordTypeSelect-selection", "label=" + Record.getRecordTypePP(primaryType));
+        selenium.type("query", modifiedID);
+        selenium.click("//input[@value='Search']");
+        //expect warning for leaving page
+        elementPresent("ui-dialog-title-1", selenium);
+        assertTrue(selenium.isTextPresent("exact:Save Changes?"));
+        selenium.click("css=.csc-confirmationDialogButton-act");        //click save
+        //Expect record and only that to be found in search results (to avoid false thruths :) )
+        selenium.waitForPageToLoad(MAX_WAIT);
+        elementPresent("link=" + modifiedID, selenium);
+        assertEquals("Found 1 records for " + modifiedID, selenium.getText("css=.csc-search-results-count"));
+    }
+
+    /**
+     * Used for testing the 'dont save' button in the dialog that appears when navigating
+     * away from an edited page. This function:
+     * 1) Enter the modifiedID value into the ID field
+     * 2) Navigate away from page using create new
+     * X) Expect the warning dialog
+     * 3) Hit Dont Save
+     * X) Do a search for modifiedID and expect 0 results
+     *
+     * PRE-REQUISITES: a record with the required fields should be filled out
+     *
+     * @param primaryType The record type we're testing on
+     * @param modifiedID The value to change the ID of the record to
+     * @param selenium The selenium object on which to run these actions
+     * @throws Exception
+     */
+    public static void navigateWarningDontSave(int primaryType, String modifiedID, Selenium selenium) throws Exception {
+        waitForRecordLoad(selenium);
+        //edit ID field
+        selenium.type(Record.getIDSelector(primaryType), modifiedID);
+        //navigate away, wait for dialog and click dont save:
+        selenium.click("link=Create New");
+        elementPresent("ui-dialog-title-1", selenium);
+        assertTrue(selenium.isTextPresent("exact:Save Changes?"));
+        selenium.click("//input[@value=\"Don't Save\"]");
+        //wait for page to load
+        textPresent(Record.getRecordTypePP(primaryType), selenium);
+        //search for the changed ID (which should not be present, since we didn't save
+        selenium.select("recordTypeSelect-selection", "label=" + Record.getRecordTypePP(primaryType));
+        selenium.type("query", modifiedID);
+        selenium.click("//input[@value='Search']");
+        //wait for page to load.. Record should not be be found:
+        textPresent("Viewing page 1", selenium);
+        assertFalse(selenium.isElementPresent("link=" + modifiedID));
     }
 
     /**
@@ -117,7 +229,7 @@ public class Utilities {
      */
     public static void clearForm(int recordType, Selenium selenium) {
         selenium.type(Record.getIDSelector(recordType), "");
-        
+
         //clear all regular fields
         HashMap<String, String> fieldMap = Record.getFieldMap(recordType);
         Iterator<String> iterator = fieldMap.keySet().iterator();
@@ -126,7 +238,7 @@ public class Utilities {
             //System.out.println("changing " + selector + " to " + fieldMap.get(selector) + " modified");
             selenium.type(selector, "");
         }
-         // clear all date fields
+        // clear all date fields
         HashMap<String, String> dateMap = Record.getDateMap(recordType);
         iterator = dateMap.keySet().iterator();
         while (iterator.hasNext()) {
