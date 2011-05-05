@@ -8,83 +8,18 @@ import org.junit.*;
 import static org.junit.Assert.*;
 import static org.collectionspace.qa.Utilities.*;
 
-public class RecordTests {
-
-//    public static Record[] recordTypes;
+/**
+ *
+ * @author kasper
+ */
+public class SecondaryTabTests {
     static Selenium selenium;
     public static String BASE_URL = "http://localhost:8180/collectionspace/ui/html/",
             LOGIN_URL = "index.html",
             LOGIN_USER = "admin@collectionspace.org",
             LOGIN_PASS = "Administrator",
             REDIRECT_URL = "myCollectionSpace.html";
-    public static Record mainRecordType;
-
-    @BeforeClass
-    public static void init() throws Exception {
-        selenium = new DefaultSelenium("localhost", 8888, "firefox", BASE_URL);
-        selenium.start();
-
-        //log in:
-        login(selenium);
-
-    }
-
-    /**
-     * TEST: tests the creation of a new record via the create new page:
-     * 1) Open create new page
-     * 2) Select record in question via radio button
-     * 3) Click Create
-     *
-     * X) Expect correct record page to be loaded
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void testCreateNew() throws Exception {
-        //FIXME: OK retardo, dont hardcode this
-        int primaryType = Record.LOAN_OUT;
-
-        log("CREATE NEW: Testing creating new " + Record.getRecordTypePP(primaryType) + "\n");
-        selenium.open("createnew.html");
-        textPresent(Record.getRecordTypePP(primaryType), selenium);
-        selenium.click("css=:radio[value='" + Record.getRecordTypeShort(primaryType) + "']");
-        selenium.click("//input[@value='Create']");
-        log("CREATE NEW: expect correct record page to load and pattern chooser to show\n");
-        waitForRecordLoad(selenium);
-        assertEquals(Record.getRecordTypePP(primaryType), selenium.getText("css=#title-bar .record-type"));
-    }
-
-    /**
-     * TEST: Tests the save functionality:
-     * 1) Create a new record
-     * 2) Fill out form with default values
-     * 3) Save the record
-     * 4) Check that the fields are as expected
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void testPrimarySave() throws Exception {
-        //FIXME: OK retardo, dont hardcode this
-        int primaryType = Record.LOAN_OUT;
-        String primaryID = "standardID";
-        
-        log(Record.getRecordTypePP(primaryType)+": test fill out record and save\n");
-        selenium.open(Record.getRecordTypeShort(primaryType) + ".html");
-        waitForRecordLoad(primaryType, selenium);
-
-        fillForm(primaryType, primaryID, selenium);
-        //save record
-        log(Record.getRecordTypePP(primaryType) + ": expect save success message and that all fields are valid\n");
-        save(selenium);
-        //check values:
-        verifyFill(primaryType, primaryID, selenium);
-    }
-
-
-
-
-
+    private static Record mainRecordType;
 
 
 
@@ -156,16 +91,7 @@ public class RecordTests {
         waitForRecordLoad(selenium);
     }
 
-    public static void createAndSave(String idPrefix, Record newRecordType) throws Exception {
-        //create new
-        selenium.open(newRecordType.shortname + ".html");
-        waitForRecordLoad(selenium);
-        assertEquals(newRecordType.longname, selenium.getText("css=#title-bar .record-type"));
-        selenium.type(newRecordType.IDFieldSelector, idPrefix + mainRecordType.defaultID);
-        //and save
-        selenium.click("//input[@value='Save']");
-        textPresent("successfully", selenium);
-    }
+
 
     //@Test
     public void tabLeavePageWarning() throws Exception {
@@ -289,34 +215,7 @@ public class RecordTests {
 
 
 
-    //@Test
-    public void testRemovingValues() throws Exception {
-        log(mainRecordType.longname.toUpperCase() + ": test removing of values from fields and save\n");
-        //Delete contents of all fields:
-        Iterator<String> iterator = mainRecordType.fieldMap.keySet().iterator();
-        while (iterator.hasNext()) {
-            selenium.type(iterator.next(), "");
-        }
-        //save record - and expect error due to missing ID
-        selenium.click("//input[@value='Save']");
-        log(mainRecordType.longname.toUpperCase() + ": expect error message due to missing required field\n");
-        elementPresent("CSS=.cs-message-error", selenium);
-        assertEquals(mainRecordType.requiredIDmessage, selenium.getText("CSS=.cs-message-error #message\n"));
-        //Enter ID and save - expect successful
-        log(mainRecordType.longname.toUpperCase() + ": enter id, save and expect correctly saved values\n");
-        selenium.type(mainRecordType.IDFieldSelector, mainRecordType.defaultID);
-        selenium.click("//input[@value='Save']");
-        textPresent("successfully", selenium);
-        //check values:
-        iterator = mainRecordType.fieldMap.keySet().iterator();
-        while (iterator.hasNext()) {
-            String selector = iterator.next();
-            if (selector.equals(mainRecordType.IDFieldSelector)) {
-                continue; //dont expect ID field to be empty
-            }
-            assertEquals("", selenium.getValue(iterator.next()));
-        }
-    }
+
 
     //Test cancel button:
     //@Test
@@ -349,35 +248,6 @@ public class RecordTests {
         selenium.click("//input[@value='Cancel changes']");
 //FIXME        verifyFill(mainRecordType.fieldMap, mainRecordType.selectMap);
 
-    }
-
-    //@Test
-    public void testDeleteRecord() throws Exception {
-        log(mainRecordType.longname.toUpperCase() + ": test delete functionality\n");
-        log(mainRecordType.longname.toUpperCase() + ": delete confirmation - Close and Cancel\n");
-        selenium.click("deleteButton");
-        textPresent("Confirmation", selenium);
-
-        assertTrue(selenium.isTextPresent("exact:Delete this record?"));
-        selenium.click("//img[@alt='close dialog']");
-        selenium.click("deleteButton");
-        selenium.click("//input[@value='Cancel']");
-        selenium.click("deleteButton");
-        log(mainRecordType.longname.toUpperCase() + ": successfull delete\n");
-        selenium.click("css=.cs-confirmationDialog :input[value='Delete']");
-        textPresent("Record successfully deleted", selenium);
-        selenium.click("css=.cs-confirmationDialog :input[value='OK']");
-        selenium.waitForPageToLoad(MAX_WAIT);
-        log(mainRecordType.longname.toUpperCase() + ": redirection to " + REDIRECT_URL + "\n");
-        assertEquals(BASE_URL + REDIRECT_URL, selenium.getLocation());
-        elementPresent("css=.cs-searchBox :input[value='Search']", selenium);
-        selenium.select("recordTypeSelect-selection", "label=" + mainRecordType.longname);
-        selenium.type("css=.cs-searchBox :input[name='query']", mainRecordType.defaultID);
-        selenium.click("css=.cs-searchBox :input[value='Search']");
-        selenium.waitForPageToLoad(MAX_WAIT);
-        log(mainRecordType.longname.toUpperCase() + ": expect no results when searching for the record\n");
-        textPresent("Found 0 records for " + mainRecordType.defaultID, selenium);
-        assertFalse(selenium.isElementPresent("link=ID"));
     }
 
     //@Test
@@ -455,7 +325,7 @@ public class RecordTests {
 //        }
 //    }
 
-  
+
 
 //    public void verifyFill(HashMap<String, String> fieldMap, HashMap<String, String> selectMap) {
 //        System.exit(0);

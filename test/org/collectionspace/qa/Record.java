@@ -19,6 +19,8 @@ public class Record {
 
     public int type;
     public String url, shortname, longname, IDFieldSelector, defaultID, requiredIDmessage;
+
+
     public HashMap<String, String> fieldMap, selectMap, dateMap;
     public List<String> vocabList;
     
@@ -36,6 +38,10 @@ public class Record {
     public Record(int type) {
         this.type = type;
         initVars(type);
+    }
+
+    public static String getRequiredIDmessage(int recordType) {
+        return records[recordType].requiredIDmessage;
     }
 
     static String getRecordTypeShort(int recordType) {

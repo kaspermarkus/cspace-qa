@@ -7,14 +7,12 @@ import static org.junit.Assert.*;
 
 public class Utilities {
 
-    public static String
-            BASE_URL = "http://localhost:8180/collectionspace/ui/html/",
+    public static String BASE_URL = "http://localhost:8180/collectionspace/ui/html/",
             LOGIN_URL = "index.html",
             LOGIN_USER = "admin@collectionspace.org",
             LOGIN_PASS = "Administrator",
             MAX_WAIT = "60000";
-    public static int
-            MAX_WAIT_SEC = 60;
+    public static int MAX_WAIT_SEC = 60;
     public static String LOGIN_REDIRECT = "myCollectionSpace.html";
 
     /**
@@ -48,6 +46,17 @@ public class Utilities {
         textPresent("successfully", selenium);
     }
 
+    public static void createAndSave(int recordType, String id, Selenium selenium) throws Exception {
+        //create new
+        selenium.open(Record.getRecordTypeShort(recordType) + ".html");
+        waitForRecordLoad(selenium);
+        assertEquals(Record.getRecordTypePP(recordType), selenium.getText("css=#title-bar .record-type"));
+        selenium.type(Record.getIDSelector(recordType), id);
+        //and save
+        selenium.click("//input[@value='Save']");
+        textPresent("successfully", selenium);
+    }
+
     /**
      * Fills out the fields of the given record type with the given recordID string as ID
      * and the default values of that record type.
@@ -75,8 +84,8 @@ public class Utilities {
      * @param dateMap Map of selectors/dates to use in the date fields.
      * @param selenium The selenium object used to fill out the form
      */
-    public static void fillForm(int recordtype, String recordID, HashMap<String, String> fieldMap, HashMap<String, String> selectMap, HashMap<String, String> dateMap, Selenium selenium) {
-        selenium.type(Record.getIDSelector(recordtype), recordID);
+    public static void fillForm(int recordType, String recordID, HashMap<String, String> fieldMap, HashMap<String, String> selectMap, HashMap<String, String> dateMap, Selenium selenium) {
+        selenium.type(Record.getIDSelector(recordType), recordID);
 
         //fill out all fields:
         Iterator<String> iterator = fieldMap.keySet().iterator();
@@ -96,6 +105,71 @@ public class Utilities {
         while (iterator.hasNext()) {
             String selector = iterator.next();
             selenium.select(selector, "label=" + selectMap.get(selector));
+        }
+    }
+
+    /**
+     * Clears values from all the fields of the form. Does NOT save afterwards
+     *
+     * EXPECTS: that the record is loaded
+     *
+     * @param recordType The record type to clear
+     */
+    public static void clearForm(int recordType, Selenium selenium) {
+        selenium.type(Record.getIDSelector(recordType), "");
+        
+        //clear all regular fields
+        HashMap<String, String> fieldMap = Record.getFieldMap(recordType);
+        Iterator<String> iterator = fieldMap.keySet().iterator();
+        while (iterator.hasNext()) {
+            String selector = iterator.next();
+            //System.out.println("changing " + selector + " to " + fieldMap.get(selector) + " modified");
+            selenium.type(selector, "");
+        }
+         // clear all date fields
+        HashMap<String, String> dateMap = Record.getDateMap(recordType);
+        iterator = dateMap.keySet().iterator();
+        while (iterator.hasNext()) {
+            String selector = iterator.next();
+            selenium.type(selector, "");
+        }
+        HashMap<String, String> selectMap = Record.getSelectMap(recordType);
+        //select from all select boxes
+        iterator = selectMap.keySet().iterator();
+        while (iterator.hasNext()) {
+            String selector = iterator.next();
+            selenium.select(selector, "index=0");
+        }
+    }
+
+    /**
+     * Checks all the fields are cleared, except for the ID field. For select boxes,
+     * it is expected that index=0 is selected
+     *
+     * EXPECTS: that the record is loaded
+     *
+     * @param recordType The record type to fill out
+     */
+    public static void verifyClear(int recordType, Selenium selenium) {
+        //check values of regular fields:
+        HashMap<String, String> fieldMap = Record.getFieldMap(recordType);
+        Iterator<String> iterator = fieldMap.keySet().iterator();
+        while (iterator.hasNext()) {
+            String selector = iterator.next();
+            assertEquals("checking for field: " + selector, "", selenium.getValue(selector));
+        }
+        //check values of date fields:
+        HashMap<String, String> dateMap = Record.getDateMap(recordType);
+        iterator = dateMap.keySet().iterator();
+        while (iterator.hasNext()) {
+            String selector = iterator.next();
+            assertEquals("", selenium.getValue(selector));
+        }
+        HashMap<String, String> selectMap = Record.getSelectMap(recordType);
+        iterator = selectMap.keySet().iterator();
+        while (iterator.hasNext()) {
+            String selector = iterator.next();
+            assertEquals(0, Integer.parseInt(selenium.getSelectedIndex(selector)));
         }
     }
 
@@ -154,6 +228,7 @@ public class Utilities {
         waitForRecordLoad(selenium);
         elementPresent(Record.getIDSelector(recordType), selenium);
     }
+
     /**
      * Asserts that the text given as parameter is not present after MAX_WAIT_SEC
      *
@@ -219,7 +294,7 @@ public class Utilities {
             Thread.sleep(1000);
         }
     }
-    
+
     public static void log(String str) {
         System.out.print(str);
 
