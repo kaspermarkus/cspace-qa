@@ -1,4 +1,7 @@
 <project basedir="." default="clean-test">
+<property name="portnum" value="4444" />
+<property name="baseurl" value="http://localhost:8180/collectionspace/ui/html/" />
+
     <property name="src.dir"     value="test"/>
     <property name="build.dir"   value="build"/>
     <property name="classes.dir" value="${build.dir}/classes"/>
@@ -16,10 +19,13 @@
     </path>
 
 <target name="test" depends="compile">
-   <junit fork="yes" haltonfailure="yes">
+   <junit fork="yes" haltonfailure="yes" printsummary="yes">
       <test name="org.collectionspace.qa.PrimaryRecordTests" />
       <formatter type="plain" usefile="false" />
       <classpath refid="test.classpath" />
+
+	<jvmarg value="-Dbaseurl=${baseurl}" />
+	<jvmarg value="-Dportnum=${portnum}" />
   </junit>
 </target>
 

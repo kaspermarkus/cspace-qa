@@ -21,6 +21,7 @@ public class PrimaryRecordTests {
             LOGIN_PASS = "Administrator",
             REDIRECT_URL = "myCollectionSpace.html",
             AFTER_DELETE_URL = "myCollectionSpace.html";
+    public static int PORT_NUM = 4444;
     private int primaryType;
 
     public PrimaryRecordTests(int number) {
@@ -44,7 +45,13 @@ public class PrimaryRecordTests {
 
     @BeforeClass
     public static void init() throws Exception {
-        selenium = new DefaultSelenium("localhost", 8888, "firefox", BASE_URL);
+        if (System.getProperty("baseurl") != null) {
+            BASE_URL = System.getProperty("baseurl");
+        }
+        if (System.getProperty("portnum") != null) {
+            PORT_NUM = Integer.parseInt(System.getProperty("portnum"));
+        }
+        selenium = new DefaultSelenium("localhost", PORT_NUM, "firefox", BASE_URL);
         selenium.start();
 
         //log in:
