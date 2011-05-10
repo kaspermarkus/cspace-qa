@@ -1,0 +1,36 @@
+<project basedir="." default="clean-test">
+    <property name="src.dir"     value="test"/>
+    <property name="build.dir"   value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="main-class"  value="org.collectionspace.qa.PrimaryRecordTests"/>    
+
+    <property name="lib.dir"     value="lib"/>
+
+    <path id="classpath">
+	         <fileset dir="${lib.dir}" includes="**/*.jar"/>
+    </path>
+    
+    <path id="test.classpath">
+	         <fileset dir="${lib.dir}" includes="**/*.jar"/>
+<pathelement location="${classes.dir}" />	
+    </path>
+
+<target name="test" depends="compile">
+   <junit fork="yes" haltonfailure="yes">
+      <test name="org.collectionspace.qa.PrimaryRecordTests" />
+      <formatter type="plain" usefile="false" />
+      <classpath refid="test.classpath" />
+  </junit>
+</target>
+
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="classpath"/>
+    </target>
+
+   <target name="clean-test" depends="clean,test" />
+</project>
