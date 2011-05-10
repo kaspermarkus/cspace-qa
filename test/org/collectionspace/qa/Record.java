@@ -1,7 +1,6 @@
 package org.collectionspace.qa;
 
 import java.util.HashMap;
-import java.util.Random;
 
 public class Record {
 
@@ -13,18 +12,17 @@ public class Record {
             MOVEMENT = 5,
             MEDIA = 6,
             OBJECT_EXIT = 7;
-    public static final int numTypes = 8;
 
     public int type;
-    public String url, shortname, longname, IDFieldSelector, defaultID, requiredIDmessage;
+    public String url, shortname, shortChainName, longname, IDFieldSelector, requiredFieldSelector, requiredFieldMessage, generatedPostfix;
 
 
     public HashMap<String, String> fieldMap, selectMap, dateMap, vocabMap;
     
     private static Record[] records = {
+        new Record(CATALOGING),
         new Record(INTAKE),
         new Record(LOAN_IN),
-        new Record(CATALOGING),
         new Record(LOAN_OUT),
         new Record(ACQUISITION),
         new Record(MOVEMENT),
@@ -37,15 +35,28 @@ public class Record {
         initVars(type);
     }
 
-    public static String getRequiredIDmessage(int recordType) {
-        return records[recordType].requiredIDmessage;
+    public static String getRequiredFieldSelector(int recordType) {
+        return records[recordType].requiredFieldSelector;
+    }
+
+    public static String getRequiredFieldMessage(int recordType) {
+        return records[recordType].requiredFieldMessage;
     }
 
     static String getRecordTypeShort(int recordType) {
         return records[recordType].shortname;
     }
+
+    static String getRecordTypeShortChain(int recordType) {
+        Record rec = records[recordType];
+        return (rec.shortChainName != null) ? rec.shortChainName : rec.shortname;
+    }
     public static String getRecordTypePP(int recordType) {
         return records[recordType].longname;
+    }
+
+    public static String getGeneratedPostfix(int recordType) {
+        return records[recordType].generatedPostfix;
     }
 
     public static String getIDSelector(int recordType) {
@@ -79,49 +90,52 @@ public class Record {
             this.url = "cataloging.html";
                 this.shortname = "cataloging";
                 this.longname = "Cataloging";
-                this.requiredIDmessage = "Please specify an Identification Number ";
+                this.shortChainName = "collection-object";
+                this.requiredFieldMessage = "Please specify an Identification Number";
                 this.IDFieldSelector = ".csc-object-identification-object-number";
+                this.requiredFieldSelector = ".csc-object-identification-object-number";
+                this.generatedPostfix = " - objectNumber";
 
-		this.selectMap.put("repeat::.csc-object-identification-responsible-department", "label=Media and Performance Art");
-		this.selectMap.put(".csc-object-identification-collection-selection", "label=Permanent collection");
-		this.selectMap.put("repeat::.csc-object-identification-other-number-type-selection", "label=Lender");
-		this.selectMap.put(".csc-object-identification-record-status-selection", "label=In process");
-		this.selectMap.put("repeat::.csc-object-identification-object-title-language-selection", "label=Arabic");
-		this.selectMap.put("repeat::.csc-collection-object-titleTranslationLanguage-selection", "label=Korean");
-		this.selectMap.put("repeat::.csc-object-identification-object-title-type-selection", "label=Series");
-		this.selectMap.put("repeat::.csc-object-identification-object-currency-selection", "label=Current");
-		this.selectMap.put("repeat::.csc-object-identification-object-level-selection", "label=Subgroup");
-		this.selectMap.put("repeat::.csc-object-identification-object-system-selection", "label=Nomenclature");
-		this.selectMap.put("repeat::.csc-object-identification-object-type-selection", "label=Denomination");
-		this.selectMap.put("repeat::.csc-object-identification-object-language-selection", "label=Chinese");
-		this.selectMap.put("repeat::.csc-object-description-object-status", "label=holotype");
-		this.selectMap.put(".csc-object-description-sex-selection", "label=female");
-		this.selectMap.put(".csc-object-description-phase-selection", "label=imago");
-		this.selectMap.put("repeat::.csc-object-description-form", "label=pinned");
-		this.selectMap.put(".csc-object-description-age-unit-selection", "label=Months");
-		this.selectMap.put("repeat::.csc-object-description-object-component-name-selection", "label=handle");
-		this.selectMap.put("repeat::.csc-object-description-technical-attribute-selection", "label=magnetic tape type");
-		this.selectMap.put("repeat::.csc-object-description-technical-attribute-measurement-selection", "label=metal");
-		this.selectMap.put("repeat::.csc-object-description-technical-attribute-unit-selection", "label=rpm");
-		this.selectMap.put("repeat::.csc-object-description-dimension-unit-selection", "label=minutes");
-		this.selectMap.put("repeat::.csc-object-description-dimension-selection", "label=length");
-		this.selectMap.put("repeat::.csc-object-description-dimension-part-selection", "label=image size");
-		this.selectMap.put("repeat::.csc-object-description-content-language", "label=Swahili");
-		this.selectMap.put("repeat::.csc-object-description-content-script", "label=Roman cursive");
-		this.selectMap.put("repeat::.csc-object-description-content-object-type-selection", "label=Furniture");
-		this.selectMap.put("repeat::.csc-object-description-content-position", "label=front");
-		this.selectMap.put(".csc-object-description-inscription-content-language-selection", "label=Korean");
-		this.selectMap.put(".csc-object-description-inscription-content-position-selection", "label=inside");
-		this.selectMap.put(".csc-object-description-inscription-content-script-selection", "label=Roman cursive");
-		this.selectMap.put(".csc-object-description-inscription-content-type-selection", "label=estate stamp");
-		this.selectMap.put(".csc-object-description-inscription-description-position-selection", "label=outside");
-		this.selectMap.put(".csc-object-description-inscription-description-type-selection", "label=maker's mark");
-		this.selectMap.put(".csc-object-description-inscription-description-type-selection", "label=estate stamp");
-		this.selectMap.put(".csc-object-history-association-access-selection", "label=open");
-		this.selectMap.put(".csc-object-history-association-category-selection", "label=public");
-		this.selectMap.put(".csc-object-history-association-denomination-selection", "label=Euro");
-		this.selectMap.put(".csc-object-history-association-exchange-method-selection", "label=purchase");
-		this.selectMap.put("repeat::.csc-collection-object-fieldCollectionMethod", "label=purchased");
+		this.selectMap.put("repeat::.csc-object-identification-responsible-department", "Media and Performance Art");
+		this.selectMap.put(".csc-object-identification-collection-selection", "Permanent collection");
+		this.selectMap.put("repeat::.csc-object-identification-other-number-type-selection", "Lender");
+		this.selectMap.put(".csc-object-identification-record-status-selection", "In process");
+		this.selectMap.put("repeat::.csc-object-identification-object-title-language-selection", "Arabic");
+		this.selectMap.put("repeat::.csc-collection-object-titleTranslationLanguage-selection", "Korean");
+		this.selectMap.put("repeat::.csc-object-identification-object-title-type-selection", "Series");
+		this.selectMap.put("repeat::.csc-object-identification-object-currency-selection", "Current");
+		this.selectMap.put("repeat::.csc-object-identification-object-level-selection", "Subgroup");
+		this.selectMap.put("repeat::.csc-object-identification-object-system-selection", "Nomenclature");
+		this.selectMap.put("repeat::.csc-object-identification-object-type-selection", "Denomination");
+		this.selectMap.put("repeat::.csc-object-identification-object-language-selection", "Chinese");
+		this.selectMap.put("repeat::.csc-object-description-object-status", "holotype");
+		this.selectMap.put(".csc-object-description-sex-selection", "female");
+		this.selectMap.put(".csc-object-description-phase-selection", "imago");
+		this.selectMap.put("repeat::.csc-object-description-form", "pinned");
+		this.selectMap.put(".csc-object-description-age-unit-selection", "Months");
+		this.selectMap.put("repeat::.csc-object-description-object-component-name-selection", "handle");
+		this.selectMap.put("repeat::.csc-object-description-technical-attribute-selection", "magnetic tape type");
+		this.selectMap.put("repeat::.csc-object-description-technical-attribute-measurement-selection", "metal");
+		this.selectMap.put("repeat::.csc-object-description-technical-attribute-unit-selection", "rpm");
+		this.selectMap.put("repeat::.csc-object-description-dimension-unit-selection", "minutes");
+		this.selectMap.put("repeat::.csc-object-description-dimension-selection", "length");
+		this.selectMap.put("repeat::.csc-object-description-dimension-part-selection", "image size");
+		this.selectMap.put("repeat::.csc-object-description-content-language", "Swahili");
+		this.selectMap.put("repeat::.csc-object-description-content-script", "Roman cursive");
+		this.selectMap.put("repeat::.csc-object-description-content-object-type-selection", "Furniture");
+		this.selectMap.put("repeat::.csc-object-description-content-position", "front");
+		this.selectMap.put(".csc-object-description-inscription-content-language-selection", "Korean");
+		this.selectMap.put(".csc-object-description-inscription-content-position-selection", "inside");
+		this.selectMap.put(".csc-object-description-inscription-content-script-selection", "Roman cursive");
+		this.selectMap.put(".csc-object-description-inscription-content-type-selection", "estate stamp");
+		this.selectMap.put(".csc-object-description-inscription-description-position-selection", "outside");
+		this.selectMap.put(".csc-object-description-inscription-description-type-selection", "maker's mark");
+		this.selectMap.put(".csc-object-description-inscription-description-type-selection", "estate stamp");
+		this.selectMap.put(".csc-object-history-association-access-selection", "open");
+		this.selectMap.put(".csc-object-history-association-category-selection", "public");
+		this.selectMap.put(".csc-object-history-association-denomination-selection", "Euro");
+		this.selectMap.put(".csc-object-history-association-exchange-method-selection", "purchase");
+		this.selectMap.put("repeat::.csc-collection-object-fieldCollectionMethod", "purchased");
 		this.fieldMap.put("repeat::.csc-object-identification-brief-description", "Auch, cataloging.. Loooooooong way to go");
 		this.fieldMap.put(".csc-object-identification-distinguishing-features", "It's a biiiiig page with lots of fields");
 		this.fieldMap.put("repeat::.csc-object-identification-comments", "Ugh, and I'm at third textarea");
@@ -254,8 +268,10 @@ public class Record {
             this.url = "intake.html";
                 this.shortname = "intake";
                 this.longname = "Intake";
-                this.requiredIDmessage = "Please specify an Intake Entry Number";
+                this.requiredFieldMessage = "Please specify an Intake Entry Number";
                 this.IDFieldSelector = ".csc-intake-entry-number";
+                this.requiredFieldSelector = ".csc-intake-entry-number";
+                this.generatedPostfix = " - entryNumber";
 
 		this.dateMap.put(".csc-intake-entry-date", "2011-05-04");
 		this.dateMap.put(".csc-intake-returnDate", "2011-05-05");
@@ -263,13 +279,13 @@ public class Record {
 		this.dateMap.put(".csc-intake-insurance-renewal-date", "2011-05-02");
 		this.dateMap.put(".csc-intake-location-date", "2011-05-01");
 		this.dateMap.put(".csc-intake-condition-check-date", "2011-05-06");
-		this.selectMap.put(".csc-intake-entry-reason-selection", "label=Consideration");
-		this.selectMap.put("repeat::.csc-intake-entryMethod", "label=Post");
-		this.selectMap.put("repeat::.csc-intake-fieldCollectionMethod", "label=netted");
-		this.selectMap.put("repeat::.csc-intake-current-location-fitness-selection", "label=Dangerous");
-		this.selectMap.put("repeat::.csc-intake-conditionCheckMethod", "label=Observed");
-		this.selectMap.put("repeat::.csc-intake-conditionCheckReason", "label=Consideration");
-		this.selectMap.put("repeat::.csc-intake-conditionCheckReason", "label=Conservation");
+		this.selectMap.put(".csc-intake-entry-reason-selection", "Consideration");
+		this.selectMap.put("repeat::.csc-intake-entryMethod", "Post");
+		this.selectMap.put("repeat::.csc-intake-fieldCollectionMethod", "netted");
+		this.selectMap.put("repeat::.csc-intake-current-location-fitness-selection", "Dangerous");
+		this.selectMap.put("repeat::.csc-intake-conditionCheckMethod", "Observed");
+		this.selectMap.put("repeat::.csc-intake-conditionCheckReason", "Consideration");
+		this.selectMap.put("repeat::.csc-intake-conditionCheckReason", "Conservation");
 		this.fieldMap.put(".csc-intake-entry-note", "Random entry note here");
 		this.fieldMap.put(".csc-intake-packing-note", "Some packing note goes here");
 		this.fieldMap.put(".csc-intake-depositor-requirements", "Always Requirements... sigh");
@@ -300,12 +316,14 @@ public class Record {
                 this.shortname = "loanin";
                 this.longname = "Loan In";
                 this.IDFieldSelector = ".csc-loanIn-loanInNumber";
-                this.requiredIDmessage = "Please specify a Loan In Number";
-                
+                this.requiredFieldSelector = ".csc-loanIn-loanInNumber";
+                this.requiredFieldMessage = "Please specify a Loan In Number";
+                this.generatedPostfix = " - loanInNumber";
+
 		this.fieldMap.put(".csc-loanIn-loanInNote", "Some Loan in Note");
 		this.fieldMap.put(".csc-loanIn-loanInConditions", "Some Conditions");
 
-                this.selectMap.put(".csc-loanIn-loanPurpose-selection", "label=Photography");
+                this.selectMap.put(".csc-loanIn-loanPurpose-selection", "Photography");
 
                 this.vocabMap.put("repeat::.csc-loanIn-lendersContact", "VOCAB");
 		this.vocabMap.put("repeat::.csc-loanIn-lender", "VOCAB");
@@ -326,7 +344,9 @@ public class Record {
                 this.shortname = "loanout";
                 this.longname = "Loan Out";
                 this.IDFieldSelector = ".csc-loanOut-loanOutNumber";
-                this.requiredIDmessage = "Please specify a Loan Out Number";
+                this.requiredFieldSelector = ".csc-loanOut-loanOutNumber";
+                this.requiredFieldMessage = "Please specify a Loan Out Number";
+                this.generatedPostfix = " - loanOutNumber";
 
                 this.fieldMap.put(".csc-loanOut-loanOutNote", "Some loan out note");
                 this.fieldMap.put(".csc-loanOut-loanOutConditions", "Some conditions");
@@ -353,7 +373,9 @@ public class Record {
                 this.shortname = "acquisition";
                 this.longname = "Acquisition";
                 this.IDFieldSelector = ".csc-acquisition-numberPatternChooser-reference-number";
-                this.requiredIDmessage = "Please specify an Acquisition Reference Number";
+                this.requiredFieldSelector = ".csc-acquisition-numberPatternChooser-reference-number";
+                this.requiredFieldMessage = "Please specify an Acquisition Reference Number";
+                this.generatedPostfix = " - acquisitionReferenceNumber";
 
                 this.fieldMap.put(".csc-acquisition-transfer-of-title-number", "Title Number");
                 this.fieldMap.put(".csc-acquisition-group-purchase-price-value", "Price Value");
@@ -391,19 +413,23 @@ public class Record {
                 this.url = "movement.html";
                 this.shortname = "movement";
                 this.longname = "Location and Movement";
-                this.IDFieldSelector = ".csc-movement-currentLocation";
-                this.requiredIDmessage = "Please specify Current Location";
+                this.IDFieldSelector = ".csc-movement-movementReferenceNumber";
+                this.requiredFieldSelector = ".csc-movement-currentLocation";
+                this.requiredFieldMessage = "Please specify Current Location";
+                this.generatedPostfix = " - movementReferenceNumber";
 
-		this.vocabMap.put(".csc-movement-removalDate", "2011-05-05");
-		this.vocabMap.put(".csc-movement-plannedRemovalDate", "2011-05-04");
-		this.vocabMap.put(".csc-movement-locationDate", "2011-05-03");
+		this.dateMap.put(".csc-movement-removalDate", "2011-05-05");
+		this.dateMap.put(".csc-movement-plannedRemovalDate", "2011-05-04");
+		this.dateMap.put(".csc-movement-locationDate", "2011-05-03");
 		this.fieldMap.put(".csc-movement-currentLocationNote", "Random note");
 		this.fieldMap.put(".csc-movement-normalLocation", "Under the big table");
-		this.fieldMap.put(".csc-movement-movementReferenceNumber", "some ref number");
+		this.fieldMap.put(".csc-movement-currentLocation", "some ref number");
 		this.fieldMap.put(".csc-movement-movementNote", "Another random note");
-		this.selectMap.put(".csc-movement-currentLocationFitness-selection", "label=Temporary");
-		this.selectMap.put("repeat::.csc-movement-movementMethods", "label=Handcarried");
-		this.selectMap.put(".csc-movement-reasonForMove-selection", "label=Inventory");
+
+		this.selectMap.put(".csc-movement-currentLocationFitness-selection", "Temporary");
+		this.selectMap.put("repeat::.csc-movement-movementMethods", "Handcarried");
+		this.selectMap.put(".csc-movement-reasonForMove-selection", "Inventory");
+                
 		this.vocabMap.put(".csc-movement-movementContact", "VOCAB");
                 break;
 
@@ -412,10 +438,12 @@ public class Record {
                 this.shortname = "media";
                 this.longname = "Media Handling";
                 this.IDFieldSelector = ".csc-media-identificationNumber";
-                this.requiredIDmessage = "Please specify an Identification Number";
-                
-		this.vocabMap.put("repeat::.csc-media-valueDate", "2011-05-01");
-		this.vocabMap.put("repeat::.csc-media-date", "2011-05-02");
+                this.requiredFieldSelector = ".csc-media-identificationNumber";
+                this.requiredFieldMessage = "Please specify an Identification Number";
+                this.generatedPostfix = " - identificationNumber";
+
+		this.dateMap.put("repeat::.csc-media-valueDate", "2011-05-01");
+		this.dateMap.put("repeat::.csc-media-date", "2011-05-02");
 		this.fieldMap.put(".csc-media-title", "Mediarrrrgh");
 		this.fieldMap.put(".csc-media-dimensionSummary", "No clue");
 		this.fieldMap.put("repeat::.csc-media-value", "22");
@@ -426,11 +454,11 @@ public class Record {
 		this.fieldMap.put("repeat::.csc-media-subject", "Got no idea");
 		this.fieldMap.put(".csc-media-copyrightStatement", "Use at will");
 		this.fieldMap.put(".csc-media-description", "This is some random media ...");
-		this.selectMap.put("repeat::.csc-media-dimension-selection", "label=Running Time");
-		this.selectMap.put("repeat::.csc-media-measurementMethod-selection", "label=Protractor");
-		this.selectMap.put("repeat::.csc-media-measurementUnit-selection", "label=Millimeters");
-		this.selectMap.put("repeat::.csc-media-type", "label=Document");
-		this.selectMap.put("repeat::.csc-media-language", "label=Russian");
+		this.selectMap.put("repeat::.csc-media-dimension-selection", "Running Time");
+		this.selectMap.put("repeat::.csc-media-measurementMethod-selection", "Protractor");
+		this.selectMap.put("repeat::.csc-media-measurementUnit-selection", "Millimeters");
+		this.selectMap.put("repeat::.csc-media-type", "Document");
+		this.selectMap.put("repeat::.csc-media-language", "Russian");
 		this.vocabMap.put("repeat::.csc-media-measuredBy", "VOCAB");
 		this.vocabMap.put(".csc-media-contributor", "VOCAB");
 		this.vocabMap.put(".csc-media-creator", "VOCAB");
@@ -443,15 +471,17 @@ public class Record {
                 this.shortname = "objectexit";
                 this.longname = "Object Exit";
                 this.IDFieldSelector = ".csc-objectexit-exitNumber";
-                this.requiredIDmessage = "Please specify Exit Number ";
+                this.requiredFieldSelector = ".csc-objectexit-exitNumber";
+                this.requiredFieldMessage = "Please specify Exit Number";
+                this.generatedPostfix = " - exitNumber";
 
                 this.dateMap.put(".csc-objectexit-exitDate", "2011-05-05");
 
                 this.fieldMap.put(".csc-objectexit-exitNote", "Goodbye birdie");
 		this.fieldMap.put(".csc-objectexit-packingNote", "Foam and Cardboard");
 
-                this.selectMap.put(".csc-objectexit-exitReason-selection", "label=Disposal");
-		this.selectMap.put("repeat::.csc-objectexit-exitMethods", "label=In Person");
+                this.selectMap.put(".csc-objectexit-exitReason-selection", "Disposal");
+		this.selectMap.put("repeat::.csc-objectexit-exitMethods", "In Person");
 
                 this.vocabMap.put(".csc-objectexit-currentOwner", "VOCAB");
 		this.vocabMap.put(".csc-objectexit-depositor", "VOCAB");

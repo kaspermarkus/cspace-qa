@@ -14,7 +14,6 @@ import static org.collectionspace.qa.Utilities.*;
 @RunWith(value = Parameterized.class)
 public class PrimaryRecordTests {
 
-//    public static Record[] recordTypes;
     static Selenium selenium;
     public static String BASE_URL = "http://localhost:8180/collectionspace/ui/html/",
             LOGIN_URL = "index.html",
@@ -31,8 +30,14 @@ public class PrimaryRecordTests {
     @Parameters
     public static Collection<Object[]> data() {
         Object[][] data = new Object[][]{
-            //{Record.LOAN_OUT},
-            {Record.ACQUISITION}
+            {Record.INTAKE},
+            {Record.LOAN_IN},
+            {Record.LOAN_OUT},
+            {Record.ACQUISITION},
+            {Record.MOVEMENT},
+            {Record.MEDIA},
+            {Record.OBJECT_EXIT},
+            {Record.CATALOGING}
         };
         return Arrays.asList(data);
     }
@@ -80,8 +85,7 @@ public class PrimaryRecordTests {
      */
     @Test
     public void testPrimarySave() throws Exception {
-        //FIXME: OK retardo, dont hardcode this
-        String primaryID = "standardID";
+        String primaryID = Record.getRecordTypeShort(primaryType) + (new Date().getTime());
 
         log(Record.getRecordTypePP(primaryType) + ": test fill out record and save\n");
         selenium.open(Record.getRecordTypeShort(primaryType) + ".html");
@@ -93,6 +97,7 @@ public class PrimaryRecordTests {
         save(selenium);
         //check values:
         verifyFill(primaryType, primaryID, selenium);
+//        Thread.sleep(1000 * 30);
     }
 
     /**
@@ -111,17 +116,22 @@ public class PrimaryRecordTests {
      */
     @Test
     public void testRemovingValues() throws Exception {
-        String primaryID = "standardID";
-        log(Record.getRecordTypePP(primaryType) + ": test removing of values from fields and save\n");
+        //generate a record
+        String generatedID = generateRecord(primaryType, selenium);
+        //goto some collectionspace page with a search box - and open new record
+        selenium.open("/collectionspace/ui/html/createnew.html");
+        open(primaryType, generatedID, selenium);
         //Delete contents of all fields:
         clearForm(primaryType, selenium);
         //save record - and expect error due to missing ID
         selenium.click("//input[@value='Save']");
         //expect error message due to missing required field\n");
         elementPresent("CSS=.cs-message-error", selenium);
-        assertEquals(Record.getRequiredIDmessage(primaryType), selenium.getText("CSS=.cs-message-error #message"));
+        assertEquals(Record.getRequiredFieldMessage(primaryType), selenium.getText("CSS=.cs-message-error #message"));
         //Enter ID and save - expect successful
-        selenium.type(Record.getIDSelector(primaryType), primaryID);
+        selenium.type(Record.getIDSelector(primaryType), generatedID);
+        //Also make sure that required field is filled out -- put generatedID in this field too
+        selenium.type(Record.getRequiredFieldSelector(primaryType), generatedID);
         selenium.click("//input[@value='Save']");
         textPresent("successfully", selenium);
         //check values:
@@ -172,7 +182,7 @@ public class PrimaryRecordTests {
         selenium.waitForPageToLoad(MAX_WAIT);
         //expect no results when searching for the record\n");
         textPresent("Found 0 records for " + uniqueID, selenium);
-        assertFalse(selenium.isElementPresent("link="+uniqueID));
+        assertFalse(selenium.isElementPresent("link=" + uniqueID));
     }
 
     /**
@@ -214,11 +224,11 @@ public class PrimaryRecordTests {
      * 8) Navigate away
      * @throws Exception
      */
-     @Test
+    @Test
     public void testLeavePageWarning() throws Exception {
         //create
         String uniqueID = Record.getRecordTypeShort(primaryType) + (new Date().getTime());
-        String modifiedID = uniqueID+"modified";
+        String modifiedID = uniqueID + "modified";
         createAndSave(primaryType, uniqueID, selenium);
         //Test close and cancel buttons of dialog
         navigateWarningClose(primaryType, modifiedID, selenium);

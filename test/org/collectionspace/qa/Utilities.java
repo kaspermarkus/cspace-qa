@@ -1,6 +1,7 @@
 package org.collectionspace.qa;
 
 import com.thoughtworks.selenium.*;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import static org.junit.Assert.*;
@@ -32,6 +33,50 @@ public class Utilities {
     }
 
     /**
+     * Opens the record with the ID primaryID and of type primaryType. The record is
+     * found via the search. After functino is done, the record should be loaded.
+     *
+     * @param primaryType the type of record to open
+     * @param primaryID The ID of the record to open
+     * @param selenium The selenium object to use
+     * @throws Exception
+     */
+    public static void open(int primaryType, String primaryID, Selenium selenium) throws Exception {
+        System.out.println("opening record of type " + Record.getRecordTypePP(primaryType));
+        elementPresent("css=.cs-searchBox .csc-searchBox-selectRecordType", selenium);
+        //Search for our ID
+        selenium.select("css=.cs-searchBox .csc-searchBox-selectRecordType", "label=" + Record.getRecordTypePP(primaryType));
+        selenium.type("css=.cs-searchBox .csc-searchBox-query", primaryID);
+        selenium.click("css=.cs-searchBox .csc-searchBox-button");
+        System.out.println("clicking search");
+        //Expect record and only that to be found in search results (to avoid false thruths :) )
+        selenium.waitForPageToLoad(MAX_WAIT);
+        elementPresent("link=" + primaryID, selenium);
+        System.out.println("found search result");
+        //go to the record again:
+        selenium.click("link=" + primaryID);
+        waitForRecordLoad(selenium);
+    }
+
+    /**
+     * Generateds a record of the given type using Chris' script. The ID of the record is
+     * returned
+     *
+     * @param recordType the type of record to generate
+     * @param selenium The Selenium object to use
+     * @return the ID of the generated record
+     * @throws Exception
+     */
+    public static String generateRecord(int recordType, Selenium selenium) throws Exception {
+        long timestamp = (new Date().getTime());
+        System.out.println("generating record with: /collectionspace/chain/"+Record.getRecordTypeShortChain(recordType)+"/generator?quantity=1&startvalue=0&extraprefix="+timestamp);
+        selenium.open("/collectionspace/chain/"+Record.getRecordTypeShort(recordType)+"/generator?quantity=1&startvalue=0&extraprefix="+timestamp);
+        String generatedID = timestamp+"0"+Record.getGeneratedPostfix(recordType);
+        textPresent("created "+Record.getRecordTypeShortChain(recordType)+" with csid of:", selenium);
+        return generatedID;
+    }
+
+    /**
      * Saves record and wait for successful message. Returns once the success
      * message is shown
      *
@@ -48,19 +93,24 @@ public class Utilities {
 
     /**
      * Creates a record of recordType with the given id and saves it. The function
-     * returns once a successful save message is given
+     * returns once a successful save message is given. The function will automagically
+     * fill out any required fields.
      *
      * @param recordType The Record.recordType to create
      * @param id The desired value of the ID field
      * @param selenium The selenium object which to run this on
      * @throws Exception
      */
-    public static void createAndSave(int recordType, String id, Selenium selenium) throws Exception {
+    public static void createAndSave(int recordType, String requiredValue, Selenium selenium) throws Exception {
         //create new
         selenium.open(Record.getRecordTypeShort(recordType) + ".html");
         waitForRecordLoad(selenium);
         assertEquals(Record.getRecordTypePP(recordType), selenium.getText("css=#title-bar .record-type"));
-        selenium.type(Record.getIDSelector(recordType), id);
+        selenium.type(Record.getIDSelector(recordType), requiredValue);
+        //make sure required field is filled out:
+        if (!Record.getRequiredFieldSelector(recordType).equals(Record.getIDSelector(recordType))) {
+            selenium.type(Record.getRequiredFieldSelector(recordType), "This field is required");
+        }
         //and save
         selenium.click("//input[@value='Save']");
         textPresent("successfully", selenium);
@@ -75,7 +125,7 @@ public class Utilities {
      * 3) Click 'acquisition' tab
      * X) Expect warning and click close
      *
-     * PRE-REQUISITES: a record with the required fields should be filled out
+     * PRE-REQUISITES: a record with the required fields filled out
      *
      * @param primaryType The record type we're testing on
      * @param modifiedID The value to change the ID of the record to
@@ -108,7 +158,7 @@ public class Utilities {
      * 3) Hit Save
      * X) Expect exactly one result from search - that is the saved record with modified ID
      *
-     * PRE-REQUISITES: a record with the required fields should be filled out
+     * PRE-REQUISITES: a record with the required fields filled out
      *
      * @param primaryType The record type we're testing on
      * @param modifiedID The value to change the ID of the record to
@@ -142,7 +192,7 @@ public class Utilities {
      * 3) Hit Dont Save
      * X) Do a search for modifiedID and expect 0 results
      *
-     * PRE-REQUISITES: a record with the required fields should be filled out
+     * PRE-REQUISITES: a record with the required fields filled out
      *
      * @param primaryType The record type we're testing on
      * @param modifiedID The value to change the ID of the record to
@@ -228,6 +278,7 @@ public class Utilities {
      * @param recordType The record type to clear
      */
     public static void clearForm(int recordType, Selenium selenium) {
+        //clear ID field
         selenium.type(Record.getIDSelector(recordType), "");
 
         //clear all regular fields
@@ -235,12 +286,18 @@ public class Utilities {
         Iterator<String> iterator = fieldMap.keySet().iterator();
         while (iterator.hasNext()) {
             String selector = iterator.next();
-            //System.out.println("changing " + selector + " to " + fieldMap.get(selector) + " modified");
             selenium.type(selector, "");
         }
         // clear all date fields
         HashMap<String, String> dateMap = Record.getDateMap(recordType);
         iterator = dateMap.keySet().iterator();
+        while (iterator.hasNext()) {
+            String selector = iterator.next();
+            selenium.type(selector, "");
+        }
+        // clear all vocab fields
+        HashMap<String, String> vocabMap = Record.getVocabMap(recordType);
+        iterator = vocabMap.keySet().iterator();
         while (iterator.hasNext()) {
             String selector = iterator.next();
             selenium.type(selector, "");
@@ -255,8 +312,9 @@ public class Utilities {
     }
 
     /**
-     * Checks all the fields are cleared, except for the ID field. For select boxes,
-     * it is expected that index=0 is selected
+     * Checks all the fields are cleared, except for the ID field and required field.
+     * That is, it check all values of fieldMap, dateMap, vocabMap and selectMap
+     * For select boxes, it is expected that index=0 is selected
      *
      * EXPECTS: that the record is loaded
      *
@@ -268,11 +326,20 @@ public class Utilities {
         Iterator<String> iterator = fieldMap.keySet().iterator();
         while (iterator.hasNext()) {
             String selector = iterator.next();
-            assertEquals("checking for field: " + selector, "", selenium.getValue(selector));
+            //dont expect required field to be empty:
+            if (!selector.equals(Record.getRequiredFieldSelector(recordType))) {
+                assertEquals("checking for field: " + selector, "", selenium.getValue(selector));
+            }
         }
         //check values of date fields:
         HashMap<String, String> dateMap = Record.getDateMap(recordType);
         iterator = dateMap.keySet().iterator();
+        while (iterator.hasNext()) {
+            String selector = iterator.next();
+            assertEquals("", selenium.getValue(selector));
+        }
+        HashMap<String, String> vocabMap = Record.getVocabMap(recordType);
+        iterator = vocabMap.keySet().iterator();
         while (iterator.hasNext()) {
             String selector = iterator.next();
             assertEquals("", selenium.getValue(selector));
