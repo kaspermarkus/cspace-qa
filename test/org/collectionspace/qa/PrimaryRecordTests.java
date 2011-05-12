@@ -56,7 +56,6 @@ public class PrimaryRecordTests {
 
         //log in:
         login(selenium);
-
     }
 
     /**
@@ -227,8 +226,13 @@ public class PrimaryRecordTests {
      * 4) Navigate away
      * 5) Expect dialog and close it
      * 6) Navigate away
-     * 7) Save Changes
+     * 7) Expect dialog and click Save
      * 8) Navigate away
+     * 9) Check that changes have been saved
+     * 10) Reopen record
+     * 11) Edit field and attempt to navigate away
+     * 12) Click dont save
+     * 13) Expect changes not to be saved
      * @throws Exception
      */
     @Test

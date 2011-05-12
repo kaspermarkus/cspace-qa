@@ -1,5 +1,6 @@
 package org.collectionspace.qa;
 
+import com.sun.jndi.dns.ResourceRecord;
 import com.thoughtworks.selenium.*;
 import java.util.Date;
 import java.util.HashMap;
@@ -34,7 +35,7 @@ public class Utilities {
 
     /**
      * Opens the record with the ID primaryID and of type primaryType. The record is
-     * found via the search. After functino is done, the record should be loaded.
+     * found via the search. After function is done, the record should be loaded.
      *
      * @param primaryType the type of record to open
      * @param primaryID The ID of the record to open
@@ -92,6 +93,27 @@ public class Utilities {
     }
 
     /**
+     * FIXME: needs proper description
+     *
+     * saves secondary tab and makes sure the record is still open afterwards
+     *
+     * REQUIRED: to be in secondary tab with all the required fields filled out
+     * 
+     * @param secondaryType
+     * @param secondaryID
+     * @param selenium
+     * @throws Exception
+     */
+    public static void saveSecondary(int secondaryType, String secondaryID, Selenium selenium) throws Exception {
+        selenium.click("css=.csc-relatedRecordsTab-"+Record.getRecordTypeShort(secondaryType)+" .saveButton");
+        //due to bug, expect record to be dismissed
+        textNotPresent("Select number pattern", selenium);
+        //and to appear on listing of related records
+        textPresent(secondaryID, selenium);
+        openRelatedOfCurrent(secondaryType, secondaryID, selenium);
+    }
+
+    /**
      * Creates a record of recordType with the given id and saves it. The function
      * returns once a successful save message is given. The function will automagically
      * fill out any required fields.
@@ -116,6 +138,80 @@ public class Utilities {
         textPresent("successfully", selenium);
     }
 
+    /**
+     * Opens the record with type primaryType, then navigates to the secondary
+     * given by secondaryType and creates a new record of that type. The record
+     * is NOT saved
+     *
+     * @param primaryType
+     * @param primaryID
+     * @param secondaryType
+     */
+    public static void createNewRelatedOf(int primaryType, String primaryID, int secondaryType, Selenium selenium) throws Exception {
+        open(primaryType, primaryID, selenium);
+        //go to secondary tab:
+        createNewRelatedOfCurrent(secondaryType, selenium);
+    }
+
+    /**
+     * Goes to the secondary tab of the type secondaryType and creates a new record.
+     * The new record is NOT saved.
+     *
+     * REQUIRED: Should be in a saved records primary tab
+     *
+     * @param secondaryType The type of record to create in secondary tab
+     * @param selenium The selenium object
+     * @throws Exception
+     */
+    public static void createNewRelatedOfCurrent(int secondaryType, Selenium selenium) throws Exception {
+        //go to secondary tab:
+        selenium.click("link=" + Record.getRecordTypePP(secondaryType));
+        elementPresent("//input[@value='Add record']", selenium);
+        selenium.click("//input[@value='Add record']");
+        elementPresent("css=.dialogForLoanOut :input[value='Create']", selenium);
+        selenium.click("css=.dialogForLoanOut :input[value='Create']");
+        waitForRecordLoad(selenium);
+    }
+
+    /**
+     * REQUIRED: Should be in the secondary tab with the desired record displayed in listing
+     * 
+     * @param secondaryType
+     * @param secondaryID
+     * @param selenium
+     * @throws Exception
+     */
+    public static void openRelatedOfCurrent(int secondaryType, String secondaryID, Selenium selenium) throws Exception {
+        textPresent(secondaryID, selenium);
+        int rowCount = 0;
+        System.out.println("textpresent: " + secondaryID);
+        String selector = "row::column:-1";
+        System.out.println("checking whether " + selector + " is present" + selenium.isElementPresent(selector));
+        elementPresent(selector, selenium);
+        System.out.println("checking whether " + selector + " is present" + selenium.isElementPresent(selector));
+        while (selenium.isElementPresent(selector)) {
+            System.out.println("found " + selector);
+            if (secondaryID.equals(selenium.getText(selector))) {
+                System.out.println("matched text: '" + selenium.getText(selector) + "'");
+                selenium.click(selector);
+                waitForRecordLoad(secondaryType, selenium);
+                return;
+            }
+            System.out.println("didn't match text: '" + selenium.getText(selector) + "'");
+            rowCount++;
+            selector = "row:" + rowCount + ":column:-1";
+            System.out.println("checking whether " + selector + " is present" + selenium.isElementPresent(selector));
+        }
+        assertTrue("Error when opening related record - couldn't find " + secondaryID, false);
+    };
+
+    public static void openRelatedOf(int primaryType, String primaryID, int secondaryType, String secondaryID, Selenium selenium) throws Exception {
+        open(primaryType, primaryID, selenium);
+        //go to secondary tab:
+        selenium.click("link=" + Record.getRecordTypePP(secondaryType));
+        openRelatedOfCurrent(secondaryType, secondaryID, selenium);
+    }
+        
     /**
      * Used for testing the close buttons (close/cancel) in the dialog that appears
      * when navigating away from an edited page. This function:
@@ -444,6 +540,30 @@ public class Utilities {
             }
             try {
                 if (selenium.isTextPresent(text)) {
+                    break;
+                }
+            } catch (Exception e) {
+            }
+            Thread.sleep(1000);
+        }
+    }
+
+    /**
+     * Asserts that the field defined by selector parameter will contain text within
+     * MAX_WAIT_SEC seconds
+     *
+     * @param text the text to check whether is present
+     * @param selector to the field that we want to check for the text in
+     * @param selenium  a Selenium object to check with
+     * @throws Exception
+     */
+    static final void textPresent(String text, String selector, Selenium selenium) throws Exception {
+        for (int second = 0;; second++) {
+            if (second >= MAX_WAIT_SEC) {
+                fail("timeout");
+            }
+            try {
+                if (text.equals(selenium.getText(selector))) {
                     break;
                 }
             } catch (Exception e) {
