@@ -415,7 +415,7 @@ public class Record {
                 this.longname = "Location and Movement";
                 this.IDFieldSelector = ".csc-movement-movementReferenceNumber";
                 this.requiredFieldSelector = ".csc-movement-currentLocation";
-                this.requiredFieldMessage = "Please specify Current Location";
+                this.requiredFieldMessage = "Please specify a Current Location";
                 this.generatedPostfix = " - movementReferenceNumber";
 
 		this.dateMap.put(".csc-movement-removalDate", "2011-05-05");
@@ -472,7 +472,7 @@ public class Record {
                 this.longname = "Object Exit";
                 this.IDFieldSelector = ".csc-objectexit-exitNumber";
                 this.requiredFieldSelector = ".csc-objectexit-exitNumber";
-                this.requiredFieldMessage = "Please specify Exit Number";
+                this.requiredFieldMessage = "Please specify an Exit Number";
                 this.generatedPostfix = " - exitNumber";
 
                 this.dateMap.put(".csc-objectexit-exitDate", "2011-05-05");

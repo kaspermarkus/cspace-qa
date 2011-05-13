@@ -1,6 +1,5 @@
 package org.collectionspace.qa;
 
-import com.sun.jndi.dns.ResourceRecord;
 import com.thoughtworks.selenium.*;
 import java.util.Date;
 import java.util.HashMap;
@@ -164,12 +163,13 @@ public class Utilities {
      * @throws Exception
      */
     public static void createNewRelatedOfCurrent(int secondaryType, Selenium selenium) throws Exception {
+        String dialogSelector =  ".dialogFor"+Record.getRecordTypePP(secondaryType).replaceAll("\\s+", "");
         //go to secondary tab:
         selenium.click("link=" + Record.getRecordTypePP(secondaryType));
         elementPresent("//input[@value='Add record']", selenium);
         selenium.click("//input[@value='Add record']");
-        elementPresent("css=.dialogForLoanOut :input[value='Create']", selenium);
-        selenium.click("css=.dialogForLoanOut :input[value='Create']");
+        elementPresent("css="+dialogSelector+" :input[value='Create']", selenium);
+        selenium.click("css="+dialogSelector+" :input[value='Create']");
         waitForRecordLoad(selenium);
     }
 
@@ -184,23 +184,23 @@ public class Utilities {
     public static void openRelatedOfCurrent(int secondaryType, String secondaryID, Selenium selenium) throws Exception {
         textPresent(secondaryID, selenium);
         int rowCount = 0;
-        System.out.println("textpresent: " + secondaryID);
+        //System.out.println("textpresent: " + secondaryID);
         String selector = "row::column:-1";
-        System.out.println("checking whether " + selector + " is present" + selenium.isElementPresent(selector));
+        //System.out.println("checking whether " + selector + " is present" + selenium.isElementPresent(selector));
         elementPresent(selector, selenium);
-        System.out.println("checking whether " + selector + " is present" + selenium.isElementPresent(selector));
+        //System.out.println("checking whether " + selector + " is present" + selenium.isElementPresent(selector));
         while (selenium.isElementPresent(selector)) {
-            System.out.println("found " + selector);
+            //System.out.println("found " + selector);
             if (secondaryID.equals(selenium.getText(selector))) {
-                System.out.println("matched text: '" + selenium.getText(selector) + "'");
+                System.out.println("Found related record with text: '" + selenium.getText(selector) + "'");
                 selenium.click(selector);
                 waitForRecordLoad(secondaryType, selenium);
                 return;
             }
-            System.out.println("didn't match text: '" + selenium.getText(selector) + "'");
+            //System.out.println("didn't match text: '" + selenium.getText(selector) + "'");
             rowCount++;
             selector = "row:" + rowCount + ":column:-1";
-            System.out.println("checking whether " + selector + " is present" + selenium.isElementPresent(selector));
+            //System.out.println("checking whether " + selector + " is present" + selenium.isElementPresent(selector));
         }
         assertTrue("Error when opening related record - couldn't find " + secondaryID, false);
     };
