@@ -163,7 +163,7 @@ public class Utilities {
      * @throws Exception
      */
     public static void createNewRelatedOfCurrent(int secondaryType, Selenium selenium) throws Exception {
-        String dialogSelector =  ".dialogFor"+Record.getRecordTypePP(secondaryType).replaceAll("\\s+", "");
+        String dialogSelector =  ".cs-search-dialogFor-"+Record.getRecordTypePP(secondaryType).replaceAll("\\s+", "");
         //go to secondary tab:
         selenium.click("link=" + Record.getRecordTypePP(secondaryType));
         elementPresent("//input[@value='Add record']", selenium);
