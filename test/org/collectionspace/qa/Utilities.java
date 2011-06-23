@@ -8,12 +8,13 @@ import static org.junit.Assert.*;
 
 public class Utilities {
 
-    public static String BASE_URL = "http://localhost:8180/collectionspace/ui/html/",
+    public static String BASE_URL = "http://localhost:8180/collectionspace/ui/core/html/",
+	    ABSOLUTE_HTML_URL = "/collectionspace/ui/core/html/",
             LOGIN_URL = "index.html",
-            LOGIN_USER = "admin@collectionspace.org",
+            LOGIN_USER = "admin@core.collectionspace.org",
             LOGIN_PASS = "Administrator",
             MAX_WAIT = "60000";
-    public static int MAX_WAIT_SEC = 60;
+    public static int MAX_WAIT_SEC = 90;
     public static String LOGIN_REDIRECT = "myCollectionSpace.html";
 
     /**
@@ -163,7 +164,7 @@ public class Utilities {
      * @throws Exception
      */
     public static void createNewRelatedOfCurrent(int secondaryType, Selenium selenium) throws Exception {
-        String dialogSelector =  ".cs-search-dialogFor-"+Record.getRecordTypePP(secondaryType).replaceAll("\\s+", "");
+        String dialogSelector =  ".cs-search-dialogFor-"+Record.getRecordTypeShort(secondaryType);
         //go to secondary tab:
         selenium.click("link=" + Record.getRecordTypePP(secondaryType));
         elementPresent("//input[@value='Add record']", selenium);
@@ -305,6 +306,7 @@ public class Utilities {
         assertTrue(selenium.isTextPresent("exact:Save Changes?"));
         selenium.click("//input[@value=\"Don't Save\"]");
         //wait for page to load
+        selenium.waitForPageToLoad(MAX_WAIT);
         textPresent(Record.getRecordTypePP(primaryType), selenium);
         //search for the changed ID (which should not be present, since we didn't save
         selenium.select("recordTypeSelect-selection", "label=" + Record.getRecordTypePP(primaryType));
@@ -581,7 +583,7 @@ public class Utilities {
      */
     static final void elementPresent(String selector, Selenium selenium) throws Exception {
         for (int second = 0;; second++) {
-            if (second >= 60) {
+            if (second >= MAX_WAIT_SEC) {
                 fail("timeout");
             }
             try {

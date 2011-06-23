@@ -15,12 +15,7 @@ import static org.collectionspace.qa.Utilities.*;
 public class PrimaryRecordTests {
 
     static Selenium selenium;
-    public static String BASE_URL = "http://localhost:8180/collectionspace/ui/html/",
-            LOGIN_URL = "index.html",
-            LOGIN_USER = "admin@collectionspace.org",
-            LOGIN_PASS = "Administrator",
-            REDIRECT_URL = "myCollectionSpace.html",
-            AFTER_DELETE_URL = "myCollectionSpace.html";
+    public static String AFTER_DELETE_URL = "findedit.html";
     public static int PORT_NUM = 4444;
     private int primaryType;
 
@@ -44,7 +39,7 @@ public class PrimaryRecordTests {
     }
 
     @BeforeClass
-    public static void init() throws Exception {
+    public static void init() throws Exception {	
         if (System.getProperty("baseurl") != null) {
             BASE_URL = System.getProperty("baseurl");
         }
@@ -125,8 +120,35 @@ public class PrimaryRecordTests {
         //generate a record
         String generatedID = generateRecord(primaryType, selenium);
         //goto some collectionspace page with a search box - and open new record
-        selenium.open("/collectionspace/ui/html/createnew.html");
-        open(primaryType, generatedID, selenium);
+        selenium.open(ABSOLUTE_HTML_URL+"createnew.html");
+        /** FIXME FIXME FIXME 
+         * Normal open call doesn't work here, as the string we are searhing for 
+         * contains " - ", which postgresql/nuxeo cant handle.. The below SHOULD be:
+         * 
+         * open(primaryType, generatedID, selenium);
+         * 
+         * This should replace the below hack once CSPACE-4106 is fixed
+         */
+        //only search for the timestamp part:
+        String hackedGeneratedID = generatedID.split(" ")[0];
+        System.out.println("opening record of type " + Record.getRecordTypePP(primaryType));
+        elementPresent("css=.cs-searchBox .csc-searchBox-selectRecordType", selenium);
+        //Search for our ID
+        selenium.select("css=.cs-searchBox .csc-searchBox-selectRecordType", "label=" + Record.getRecordTypePP(primaryType));
+        selenium.type("css=.cs-searchBox .csc-searchBox-query", hackedGeneratedID);
+        selenium.click("css=.cs-searchBox .csc-searchBox-button");
+        System.out.println("clicking search");
+        //Expect record and only that to be found in search results (to avoid false thruths :) )
+        selenium.waitForPageToLoad(MAX_WAIT);
+        elementPresent("link=" + generatedID, selenium);
+        System.out.println("found search result");
+        //go to the record:
+        selenium.click("link=" + generatedID);
+        waitForRecordLoad(selenium);
+        /**
+         * END OF CSPACE-4106 hack
+         * FIXME FIXME FIXME
+         */
         //Delete contents of all fields:
         clearForm(primaryType, selenium);
         //save record - and expect error due to missing ID

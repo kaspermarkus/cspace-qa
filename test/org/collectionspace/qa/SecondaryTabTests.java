@@ -19,11 +19,6 @@ import static org.collectionspace.qa.Utilities.*;
 public class SecondaryTabTests {
 
     static Selenium selenium;
-    public static String BASE_URL = "http://localhost:8180/collectionspace/ui/html/",
-            LOGIN_URL = "index.html",
-            LOGIN_USER = "admin@collectionspace.org",
-            LOGIN_PASS = "Administrator",
-            REDIRECT_URL = "myCollectionSpace.html";
     public static int PORT_NUM = 4444;
     private int primaryType, secondaryType;
 
@@ -193,7 +188,7 @@ public class SecondaryTabTests {
         String primaryID = Record.getRecordTypeShort(primaryType) + (new Date().getTime());
 
         //goto some collectionspace page with a search box - and open new record
-        selenium.open("/collectionspace/ui/html/createnew.html");
+        selenium.open(ABSOLUTE_HTML_URL+"createnew.html");
         open(secondaryType, secondaryID, selenium);
 
         //go to the secondary tab of the type primaryType and create new record
