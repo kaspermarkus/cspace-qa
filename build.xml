@@ -1,6 +1,6 @@
 <project basedir="." default="clean-test">
     <property name="portnum" value="4444" />
-    <property name="baseurl" value="http://localhost:8180/collectionspace/ui/core/html/" />
+    <property name="baseurl" value="http://qa.collectionspace.org:8180/collectionspace/ui/core/html/" />
 
     <property name="src.dir"     value="test"/>
     <property name="build.dir"   value="build"/>

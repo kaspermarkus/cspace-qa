@@ -55,6 +55,11 @@ public class SecondaryTabTests {
 
         //log in:
         login(selenium);
+        
+        //autogenerate a movement record so that we have an urn::value to put in the required field
+        String locationAuthorityURN = getLocationURN(selenium);
+        System.out.println("URN: "+locationAuthorityURN);
+        Record.setField(Record.MOVEMENT, Record.getRequiredFieldSelector(Record.MOVEMENT), locationAuthorityURN);
     }
 
     /**
@@ -188,7 +193,7 @@ public class SecondaryTabTests {
         String primaryID = Record.getRecordTypeShort(primaryType) + (new Date().getTime());
 
         //goto some collectionspace page with a search box - and open new record
-        selenium.open(ABSOLUTE_HTML_URL+"createnew.html");
+        selenium.open("createnew.html");
         open(secondaryType, secondaryID, selenium);
 
         //go to the secondary tab of the type primaryType and create new record

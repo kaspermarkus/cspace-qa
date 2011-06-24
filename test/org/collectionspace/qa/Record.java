@@ -1,6 +1,7 @@
 package org.collectionspace.qa;
 
 import java.util.HashMap;
+import java.util.Iterator;
 
 public class Record {
 
@@ -33,6 +34,10 @@ public class Record {
     private Record(int type) {
         this.type = type;
         initVars(type);
+    }
+
+    public static String getUrl(int recordType) {
+        return records[recordType].url;
     }
 
     public static String getRequiredFieldSelector(int recordType) {
@@ -77,6 +82,13 @@ public class Record {
 
     public static HashMap<String, String> getVocabMap(int recordType) {
         return records[recordType].vocabMap;
+    }
+    
+    public static void setField(int recordType, String selector, String value) {
+        HashMap<String, String> map = records[recordType].fieldMap;
+//        System.out.println("set field called.. selector "+selector+", value: "+value);
+//        System.out.println("looking in map of size "+        map.size());
+        map.put(selector, value);
     }
 
     public void initVars(int type) {
@@ -245,7 +257,7 @@ public class Record {
 		this.dateMap.put(".csc-object-description-content-date", "2011-05-02");
 		this.dateMap.put(".csc-object-description-inscription-content-date", "2011-05-03");
 		this.dateMap.put(".csc-object-description-inscription-description-date", "2011-05-04");
-		this.dateMap.put("repeat::.csc-object-production-date", "2011-05-05");
+		this.dateMap.put(".csc-object-production-date", "2011-05-05");
 		this.dateMap.put("repeat::.csc-object-history-association-assocDate", "2011-05-06");
 		this.dateMap.put(".csc-object-history-association-ownershipDates", "2011-05-07");
 		this.dateMap.put(".csc-collection-object-fieldCollectionDate", "2011-05-09");
@@ -422,14 +434,15 @@ public class Record {
 		this.dateMap.put(".csc-movement-plannedRemovalDate", "2011-05-04");
 		this.dateMap.put(".csc-movement-locationDate", "2011-05-03");
 		this.fieldMap.put(".csc-movement-currentLocationNote", "Random note");
-		this.fieldMap.put(".csc-movement-normalLocation", "Under the big table");
-		this.fieldMap.put(".csc-movement-currentLocation", "some ref number");
-		this.fieldMap.put(".csc-movement-movementNote", "Another random note");
 
+		this.fieldMap.put(".csc-movement-movementNote", "Another random note");
+                this.fieldMap.put(".csc-movement-currentLocation", "some ref number");                
+                
 		this.selectMap.put(".csc-movement-currentLocationFitness-selection", "Temporary");
 		this.selectMap.put("repeat::.csc-movement-movementMethods", "Handcarried");
 		this.selectMap.put(".csc-movement-reasonForMove-selection", "Inventory");
-                
+
+                this.vocabMap.put(".csc-movement-normalLocation", "VOCAB");		
 		this.vocabMap.put(".csc-movement-movementContact", "VOCAB");
                 break;
 

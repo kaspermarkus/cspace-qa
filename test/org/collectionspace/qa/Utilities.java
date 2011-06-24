@@ -1,5 +1,7 @@
 package org.collectionspace.qa;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import com.thoughtworks.selenium.*;
 import java.util.Date;
 import java.util.HashMap;
@@ -9,11 +11,10 @@ import static org.junit.Assert.*;
 public class Utilities {
 
     public static String BASE_URL = "http://localhost:8180/collectionspace/ui/core/html/",
-	    ABSOLUTE_HTML_URL = "/collectionspace/ui/core/html/",
             LOGIN_URL = "index.html",
             LOGIN_USER = "admin@core.collectionspace.org",
             LOGIN_PASS = "Administrator",
-            MAX_WAIT = "60000";
+            MAX_WAIT = "90000";
     public static int MAX_WAIT_SEC = 90;
     public static String LOGIN_REDIRECT = "myCollectionSpace.html";
 
@@ -25,11 +26,19 @@ public class Utilities {
      */
     public static void login(Selenium selenium) throws Exception {
         selenium.open(LOGIN_URL);
+        selenium.waitForPageToLoad(MAX_WAIT);
         log("LOGIN: logging in as admin\n");
         selenium.type("userid", LOGIN_USER);
         selenium.type("password", LOGIN_PASS);
         selenium.click("//input[@value='Sign In']");
         selenium.waitForPageToLoad(MAX_WAIT);
+        if (selenium.getLocation().equals(BASE_URL + LOGIN_URL)) {
+            Thread.sleep(10000);
+            selenium.type("userid", LOGIN_USER);
+            selenium.type("password", LOGIN_PASS);
+            selenium.click("//input[@value='Sign In']");
+            selenium.waitForPageToLoad(MAX_WAIT);
+        }
         assertEquals(BASE_URL + LOGIN_REDIRECT, selenium.getLocation());
     }
 
@@ -60,7 +69,33 @@ public class Utilities {
     }
 
     /**
-     * Generateds a record of the given type using Chris' script. The ID of the record is
+     * @param selenium
+     * @return
+     * @throws Exception 
+     */
+    public static String getLocationURN(Selenium selenium) throws Exception {
+        selenium.open("/collectionspace/chain/" + Record.getRecordTypeShort(Record.MOVEMENT) + "/generator?quantity=1");
+        //wait for record to be generated
+        textPresent("created movement with csid of", selenium);
+        //get the entire source:        
+        String source = selenium.getBodyText();
+        System.out.println("RAWSOURCE: " + source);
+        //find csid:
+        Pattern linkElementPattern = Pattern.compile("created movement with csid of: (.*)\n");
+        Matcher linkElementMatcher = linkElementPattern.matcher(source);
+        linkElementMatcher.find();
+        String csid = linkElementMatcher.group(1);
+        System.out.println("CSID" + csid);
+        //open the record by typing the URL directly
+        selenium.open(Record.getUrl(Record.MOVEMENT) + "?csid=" + csid);
+        waitForRecordLoad(selenium);
+        //finally get the URN for the location authority
+        String urn = selenium.getValue(Record.getRequiredFieldSelector(Record.MOVEMENT));
+        return urn;
+    }
+
+    /**
+     * Generated a record of the given type using Chris' script. The ID of the record is
      * returned
      *
      * @param recordType the type of record to generate
@@ -70,10 +105,10 @@ public class Utilities {
      */
     public static String generateRecord(int recordType, Selenium selenium) throws Exception {
         long timestamp = (new Date().getTime());
-        System.out.println("generating record with: /collectionspace/chain/"+Record.getRecordTypeShortChain(recordType)+"/generator?quantity=1&startvalue=0&extraprefix="+timestamp);
-        selenium.open("/collectionspace/chain/"+Record.getRecordTypeShort(recordType)+"/generator?quantity=1&startvalue=0&extraprefix="+timestamp);
-        String generatedID = timestamp+"0"+Record.getGeneratedPostfix(recordType);
-        textPresent("created "+Record.getRecordTypeShortChain(recordType)+" with csid of:", selenium);
+        System.out.println("generating record with: /collectionspace/chain/" + Record.getRecordTypeShortChain(recordType) + "/generator?quantity=1&startvalue=0&extraprefix=" + timestamp);
+        selenium.open("/collectionspace/chain/" + Record.getRecordTypeShort(recordType) + "/generator?quantity=1&startvalue=0&extraprefix=" + timestamp);
+        String generatedID = timestamp + "0" + Record.getGeneratedPostfix(recordType);
+        textPresent("created " + Record.getRecordTypeShortChain(recordType) + " with csid of:", selenium);
         return generatedID;
     }
 
@@ -105,7 +140,7 @@ public class Utilities {
      * @throws Exception
      */
     public static void saveSecondary(int secondaryType, String secondaryID, Selenium selenium) throws Exception {
-        selenium.click("css=.csc-relatedRecordsTab-"+Record.getRecordTypeShort(secondaryType)+" .saveButton");
+        selenium.click("css=.csc-relatedRecordsTab-" + Record.getRecordTypeShort(secondaryType) + " .saveButton");
         //due to bug, expect record to be dismissed
         textNotPresent("Select number pattern", selenium);
         //and to appear on listing of related records
@@ -164,13 +199,13 @@ public class Utilities {
      * @throws Exception
      */
     public static void createNewRelatedOfCurrent(int secondaryType, Selenium selenium) throws Exception {
-        String dialogSelector =  ".cs-search-dialogFor-"+Record.getRecordTypeShort(secondaryType);
+        String dialogSelector = ".cs-search-dialogFor-" + Record.getRecordTypeShort(secondaryType);
         //go to secondary tab:
         selenium.click("link=" + Record.getRecordTypePP(secondaryType));
         elementPresent("//input[@value='Add record']", selenium);
         selenium.click("//input[@value='Add record']");
-        elementPresent("css="+dialogSelector+" :input[value='Create']", selenium);
-        selenium.click("css="+dialogSelector+" :input[value='Create']");
+        elementPresent("css=" + dialogSelector + " :input[value='Create']", selenium);
+        selenium.click("css=" + dialogSelector + " :input[value='Create']");
         waitForRecordLoad(selenium);
     }
 
@@ -204,7 +239,9 @@ public class Utilities {
             //System.out.println("checking whether " + selector + " is present" + selenium.isElementPresent(selector));
         }
         assertTrue("Error when opening related record - couldn't find " + secondaryID, false);
-    };
+    }
+
+    ;
 
     public static void openRelatedOf(int primaryType, String primaryID, int secondaryType, String secondaryID, Selenium selenium) throws Exception {
         open(primaryType, primaryID, selenium);
@@ -212,7 +249,7 @@ public class Utilities {
         selenium.click("link=" + Record.getRecordTypePP(secondaryType));
         openRelatedOfCurrent(secondaryType, secondaryID, selenium);
     }
-        
+
     /**
      * Used for testing the close buttons (close/cancel) in the dialog that appears
      * when navigating away from an edited page. This function:
@@ -566,6 +603,28 @@ public class Utilities {
             }
             try {
                 if (text.equals(selenium.getText(selector))) {
+                    break;
+                }
+            } catch (Exception e) {
+            }
+            Thread.sleep(1000);
+        }
+    }
+
+    /**
+     * Asserts that the element is NOT present within MAX_WAIT_SEC
+     *
+     * @param selector The selector for the element to check
+     * @param selenium a Selenium object to check with
+     * @throws Exception
+     */
+    static final void elementNotPresent(String selector, Selenium selenium) throws Exception {
+        for (int second = 0;; second++) {
+            if (second >= MAX_WAIT_SEC) {
+                fail("timeout");
+            }
+            try {
+                if (!selenium.isElementPresent(selector)) {
                     break;
                 }
             } catch (Exception e) {

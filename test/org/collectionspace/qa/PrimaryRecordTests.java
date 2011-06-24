@@ -51,6 +51,11 @@ public class PrimaryRecordTests {
 
         //log in:
         login(selenium);
+
+        //autogenerate a movement record so that we have an urn::value to put in the required field
+        String locationAuthorityURN = getLocationURN(selenium);
+        System.out.println("URN: "+locationAuthorityURN);
+        Record.setField(Record.MOVEMENT, Record.getRequiredFieldSelector(Record.MOVEMENT), locationAuthorityURN);
     }
 
     /**
@@ -120,7 +125,7 @@ public class PrimaryRecordTests {
         //generate a record
         String generatedID = generateRecord(primaryType, selenium);
         //goto some collectionspace page with a search box - and open new record
-        selenium.open(ABSOLUTE_HTML_URL+"createnew.html");
+        selenium.open("createnew.html");
         /** FIXME FIXME FIXME 
          * Normal open call doesn't work here, as the string we are searhing for 
          * contains " - ", which postgresql/nuxeo cant handle.. The below SHOULD be:
