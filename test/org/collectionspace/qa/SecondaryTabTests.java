@@ -20,7 +20,9 @@ public class SecondaryTabTests {
 
     static Selenium selenium;
     public static int PORT_NUM = 4444;
+    public static String BROWSER = "firefox";
     private int primaryType, secondaryType;
+    
 
     public SecondaryTabTests(int primaryType, int secondaryType) {
         this.primaryType = primaryType;
@@ -50,7 +52,10 @@ public class SecondaryTabTests {
         if (System.getProperty("portnum") != null) {
             PORT_NUM = Integer.parseInt(System.getProperty("portnum"));
         }
-        selenium = new DefaultSelenium("localhost", PORT_NUM, "firefox", BASE_URL);
+        if (System.getProperty("browser") != null) {
+            BROWSER = System.getProperty("browser");
+        }
+        selenium = new DefaultSelenium("localhost", PORT_NUM, BROWSER, BASE_URL);
         selenium.start();
 
         //log in:
