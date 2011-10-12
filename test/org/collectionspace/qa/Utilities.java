@@ -16,7 +16,7 @@ public class Utilities {
             LOGIN_PASS = "Administrator",
             MAX_WAIT = "90000";
     public static int MAX_WAIT_SEC = 90;
-    public static String LOGIN_REDIRECT = "myCollectionSpace.html";
+    public static String LOGIN_REDIRECT = "findedit.html";
 
     /**
      * Logs in to collectionspace as LOGIN_USER with LOGIN_PASS
@@ -25,6 +25,7 @@ public class Utilities {
      * @throws Exception
      */
     public static void login(Selenium selenium) throws Exception {
+        System.out.println("Logging in...");
         selenium.open(LOGIN_URL);
         selenium.waitForPageToLoad(MAX_WAIT);
         log("LOGIN: logging in as admin\n");
@@ -33,6 +34,7 @@ public class Utilities {
         selenium.click("//input[@value='Sign In']");
         selenium.waitForPageToLoad(MAX_WAIT);
         if (selenium.getLocation().equals(BASE_URL + LOGIN_URL)) {
+		System.out.println("Not logged in yet, trying again");
             Thread.sleep(10000);
             selenium.type("userid", LOGIN_USER);
             selenium.type("password", LOGIN_PASS);
