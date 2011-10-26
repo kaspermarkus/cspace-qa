@@ -483,7 +483,7 @@ public class Utilities {
             String selector = iterator.next();
             //dont expect required field to be empty:
             if (!selector.equals(Record.getRequiredFieldSelector(recordType))) {
-                System.out.println("CHECKING FIELD: "+selector);
+//                System.out.println("CHECKING FIELD: "+selector);
                 assertEquals("checking for field: " + selector, "", selenium.getValue(selector));
             }
         }
@@ -580,12 +580,18 @@ public class Utilities {
 //        elementNotPresent("//select[option='Options not loaded']", selenium);
     }
     
+    /**
+     * wait for record to load.. This is indicated by number picker being present, or in 
+     * case of group, by the selector having got it's option values
+     * 
+     * @param recordType record type expected to load
+     * @param selenium a Selenium object to check with
+     * @throws Exception
+     */
     public static void waitForRecordLoad(int recordType, Selenium selenium) throws Exception {
         if (recordType == Record.GROUP) { //group doesn't have number picker
-            System.out.println("RECORDTYPE == GROUP");
             elementPresent("//select[option='Decorative Arts']", selenium);
         } else {
-            System.out.println("Recordtype: "+recordType+" ("+Record.getRecordTypePP(recordType)+" != GROUP");
             elementPresent("//input[@value='Select number pattern']", selenium);
         }
         elementPresent(Record.getIDSelector(recordType), selenium);

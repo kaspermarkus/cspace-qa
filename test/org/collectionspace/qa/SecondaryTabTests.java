@@ -32,14 +32,16 @@ public class SecondaryTabTests {
     @Parameters
     public static Collection<Object[]> data() {
         Object[][] data = new Object[][]{
-            {Record.OBJECT_EXIT, Record.INTAKE},
-//            {Record.INTAKE, Record.LOAN_IN},
-//            {Record.LOAN_IN, Record.LOAN_OUT},
-//            {Record.LOAN_OUT, Record.ACQUISITION},
-//            {Record.ACQUISITION, Record.MOVEMENT},
-//            {Record.MOVEMENT, Record.MEDIA},
-//            {Record.MEDIA, Record.OBJECT_EXIT}
-//            {Record.LOAN_IN, Record.CATALOGING}
+            //its the second entry being tested
+            {Record.GROUP, Record.INTAKE},
+            {Record.INTAKE, Record.LOAN_IN},
+            {Record.LOAN_IN, Record.LOAN_OUT},
+            {Record.LOAN_OUT, Record.ACQUISITION},
+            {Record.ACQUISITION, Record.MOVEMENT},
+            {Record.GROUP, Record.MEDIA},
+            {Record.MEDIA, Record.OBJECT_EXIT},
+            {Record.OBJECT_EXIT, Record.GROUP},
+            {Record.LOAN_IN, Record.CATALOGING}
         };
         return Arrays.asList(data);
     }
