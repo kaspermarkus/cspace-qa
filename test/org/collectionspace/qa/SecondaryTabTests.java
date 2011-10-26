@@ -33,12 +33,12 @@ public class SecondaryTabTests {
     public static Collection<Object[]> data() {
         Object[][] data = new Object[][]{
             {Record.OBJECT_EXIT, Record.INTAKE},
-            {Record.INTAKE, Record.LOAN_IN},
-            {Record.LOAN_IN, Record.LOAN_OUT},
-            {Record.LOAN_OUT, Record.ACQUISITION},
-            {Record.ACQUISITION, Record.MOVEMENT},
-            {Record.MOVEMENT, Record.MEDIA},
-            {Record.MEDIA, Record.OBJECT_EXIT}
+//            {Record.INTAKE, Record.LOAN_IN},
+//            {Record.LOAN_IN, Record.LOAN_OUT},
+//            {Record.LOAN_OUT, Record.ACQUISITION},
+//            {Record.ACQUISITION, Record.MOVEMENT},
+//            {Record.MOVEMENT, Record.MEDIA},
+//            {Record.MEDIA, Record.OBJECT_EXIT}
 //            {Record.LOAN_IN, Record.CATALOGING}
         };
         return Arrays.asList(data);
@@ -62,9 +62,9 @@ public class SecondaryTabTests {
         login(selenium);
         
         //autogenerate a movement record so that we have an urn::value to put in the required field
-        String locationAuthorityURN = getLocationURN(selenium);
-        System.out.println("URN: "+locationAuthorityURN);
-        Record.setField(Record.MOVEMENT, Record.getRequiredFieldSelector(Record.MOVEMENT), locationAuthorityURN);
+//        String locationAuthorityURN = getLocationURN(selenium);
+//        System.out.println("URN: "+locationAuthorityURN);
+//        Record.setField(Record.MOVEMENT, Record.getRequiredFieldSelector(Record.MOVEMENT), locationAuthorityURN);
     }
 
     /**
@@ -191,7 +191,7 @@ public class SecondaryTabTests {
      *
      * @throws Exception
      */
-//FIME - NOT  WORKING @Test
+    @Test
     public void testRemovingValues() throws Exception {
         //generate a record of secondary type
         String secondaryID = generateRecord(secondaryType, selenium);
@@ -200,7 +200,6 @@ public class SecondaryTabTests {
         //goto some collectionspace page with a search box - and open new record
         selenium.open("createnew.html");
         open(secondaryType, secondaryID, selenium);
-
         //go to the secondary tab of the type primaryType and create new record
         createNewRelatedOfCurrent(primaryType, selenium);
         //fill out ID field + required field and save:
@@ -211,7 +210,6 @@ public class SecondaryTabTests {
         }
         //save the record in the secondary tab:
         saveSecondary(primaryType, primaryID, selenium);
-
         //Now that they are related, make sure we have the secondaryType in the secondary tab:
         openRelatedOf(primaryType, primaryID, secondaryType, secondaryID, selenium);
         //clear values from all fields
@@ -223,7 +221,7 @@ public class SecondaryTabTests {
         assertEquals(Record.getRequiredFieldMessage(secondaryType), selenium.getText("CSS=.cs-message-error #message"));
         //Enter ID and make sure required field is filled out
         selenium.type(Record.getIDSelector(secondaryType), secondaryID);
-        selenium.type(Record.getRequiredFieldSelector(primaryType), secondaryID);
+        selenium.type(Record.getRequiredFieldSelector(secondaryType), secondaryID);
         //save record
         saveSecondary(secondaryType, secondaryID, selenium);
         //check values:
@@ -269,7 +267,8 @@ public class SecondaryTabTests {
         saveSecondary(secondaryType, secondaryID, selenium);
 
         //Find the delete symbol in list and click it:
-        String listDeleteSelector = findListDeleteButton(secondaryType, secondaryID, selenium);
+//        String listDeleteSelector = findListDeleteButton(secondaryType, secondaryID, selenium);
+        String listDeleteSelector = "css=span:contains(\""+secondaryID+"\") ~ span .csc-recordList-deleteRelation";
         selenium.click(listDeleteSelector);
         assertTrue(selenium.isTextPresent("exact:Delete this relation?"));
         selenium.click("//img[@alt='close dialog']");
@@ -279,7 +278,9 @@ public class SecondaryTabTests {
         selenium.click(listDeleteSelector);
         assertTrue(selenium.isTextPresent("exact:Delete this relation?"));
         selenium.click("css=.cs-confirmationDialog :input[value='Delete']");
-
+        //check that record is no longer related:
+        String selector = "css=.csc-relatedRecordsTab-"+Record.getRecordTypeShort(secondaryType) +" .csc-recordList-row span:contains(\""+secondaryID+"\")";
+        elementNotPresent(selector, selenium);
         //TODO: Check that recordEditor is dismissed
 
         //check that the record is not deleted
@@ -298,7 +299,7 @@ public class SecondaryTabTests {
         textPresent(secondaryID, selenium);
         int rowCount = 0;
         System.out.println("textpresent: " + secondaryID);
-        String selector = "row::column:-1";
+        String selector = "row::column:-1"; //TODO POINTS TO SIDEBAR! FIND SOMETHING ELSE
         System.out.println("checking whether " + selector + " is present" + selenium.isElementPresent(selector));
         elementPresent(selector, selenium);
         System.out.println("checking whether " + selector + " is present" + selenium.isElementPresent(selector));

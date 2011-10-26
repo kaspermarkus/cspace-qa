@@ -12,7 +12,8 @@ public class Record {
             ACQUISITION = 4,
             MOVEMENT = 5,
             MEDIA = 6,
-            OBJECT_EXIT = 7;
+            OBJECT_EXIT = 7,
+            GROUP = 8;
 
     public int type;
     public String url, shortname, shortChainName, longname, IDFieldSelector, requiredFieldSelector, requiredFieldMessage, generatedPostfix;
@@ -28,7 +29,8 @@ public class Record {
         new Record(ACQUISITION),
         new Record(MOVEMENT),
         new Record(MEDIA),
-        new Record(OBJECT_EXIT)
+        new Record(OBJECT_EXIT),
+        new Record(GROUP),
     };
 
     private Record(int type) {
@@ -108,50 +110,52 @@ public class Record {
                 this.requiredFieldSelector = ".csc-object-identification-object-number";
                 this.generatedPostfix = " - objectNumber";
 
-		this.selectMap.put("repeat::.csc-object-identification-responsible-department", "Media and Performance Art");
-		this.selectMap.put(".csc-object-identification-collection-selection", "Permanent collection");
-		this.selectMap.put("repeat::.csc-object-identification-other-number-type-selection", "Lender");
-		this.selectMap.put(".csc-object-identification-record-status-selection", "In process");
-		this.selectMap.put("repeat::.csc-object-identification-object-title-language-selection", "Arabic");
-		this.selectMap.put("repeat::.csc-collection-object-titleTranslationLanguage-selection", "Korean");
-		this.selectMap.put("repeat::.csc-object-identification-object-title-type-selection", "Series");
-		this.selectMap.put("repeat::.csc-object-identification-object-currency-selection", "Current");
-		this.selectMap.put("repeat::.csc-object-identification-object-level-selection", "Subgroup");
-		this.selectMap.put("repeat::.csc-object-identification-object-system-selection", "Nomenclature");
-		this.selectMap.put("repeat::.csc-object-identification-object-type-selection", "Denomination");
-		this.selectMap.put("repeat::.csc-object-identification-object-language-selection", "Chinese");
-		this.selectMap.put("repeat::.csc-object-description-object-status", "holotype");
-		this.selectMap.put(".csc-object-description-sex-selection", "female");
-		this.selectMap.put(".csc-object-description-phase-selection", "imago");
-		this.selectMap.put("repeat::.csc-object-description-form", "pinned");
-		this.selectMap.put(".csc-object-description-age-unit-selection", "Months");
-		this.selectMap.put("repeat::.csc-object-description-object-component-name-selection", "handle");
-		this.selectMap.put("repeat::.csc-object-description-technical-attribute-selection", "magnetic tape type");
-		this.selectMap.put("repeat::.csc-object-description-technical-attribute-measurement-selection", "metal");
-		this.selectMap.put("repeat::.csc-object-description-technical-attribute-unit-selection", "rpm");
-		this.selectMap.put("repeat::.csc-object-description-dimension-unit-selection", "minutes");
-		this.selectMap.put("repeat::.csc-object-description-dimension-selection", "length");
-		this.selectMap.put("repeat::.csc-object-description-dimension-part-selection", "image size");
-		this.selectMap.put("repeat::.csc-object-description-content-language", "Swahili");
-		this.selectMap.put("repeat::.csc-object-description-content-script", "Roman cursive");
-		this.selectMap.put("repeat::.csc-object-description-content-object-type-selection", "Furniture");
-		this.selectMap.put("repeat::.csc-object-description-content-position", "front");
-		this.selectMap.put(".csc-object-description-inscription-content-language-selection", "Korean");
-		this.selectMap.put(".csc-object-description-inscription-content-position-selection", "inside");
-		this.selectMap.put(".csc-object-description-inscription-content-script-selection", "Roman cursive");
-		this.selectMap.put(".csc-object-description-inscription-content-type-selection", "estate stamp");
-		this.selectMap.put(".csc-object-description-inscription-description-position-selection", "outside");
-		this.selectMap.put(".csc-object-description-inscription-description-type-selection", "maker's mark");
-		this.selectMap.put(".csc-object-description-inscription-description-type-selection", "estate stamp");
-		this.selectMap.put(".csc-object-history-association-access-selection", "open");
-		this.selectMap.put(".csc-object-history-association-category-selection", "public");
-		this.selectMap.put(".csc-object-history-association-denomination-selection", "Euro");
-		this.selectMap.put(".csc-object-history-association-exchange-method-selection", "purchase");
-		this.selectMap.put("repeat::.csc-collection-object-fieldCollectionMethod", "purchased");
+		this.selectMap.put("css=.csc-object-identification-responsible-department", "Media and Performance Art");
+		this.selectMap.put("css=.csc-object-identification-collection", "Permanent collection");
+		this.selectMap.put("css=.csc-object-identification-other-number-type", "Lender");
+		this.selectMap.put("css=.csc-object-identification-record-status", "In process");
+		this.selectMap.put("css=.csc-object-identification-object-title-language", "Arabic");
+		this.selectMap.put("css=.csc-collection-object-titleTranslationLanguage", "Korean");
+		this.selectMap.put("css=.csc-object-identification-object-title-type", "Series");
+		this.selectMap.put("css=.csc-object-identification-object-currency", "Current");
+		this.selectMap.put("css=.csc-object-identification-object-level", "Subgroup");
+		this.selectMap.put("css=.csc-object-identification-object-system", "Nomenclature");
+		this.selectMap.put("css=.csc-object-identification-object-type", "Denomination");
+		this.selectMap.put("css=.csc-object-identification-object-language", "Chinese");
+		this.selectMap.put("css=.csc-object-description-object-status", "holotype");
+		this.selectMap.put("css=.csc-object-description-sex", "female");
+		this.selectMap.put("css=.csc-object-description-phase", "imago");
+		this.selectMap.put("css=.csc-object-description-form", "pinned");
+		this.selectMap.put("css=.csc-object-description-age-unit", "Months");
+		this.selectMap.put("css=.csc-object-description-object-component-name", "handle");
+		this.selectMap.put("css=.csc-object-description-technical-attribute", "magnetic tape type");
+		this.selectMap.put("css=.csc-object-description-technical-attribute-measurement", "metal");
+		this.selectMap.put("css=.csc-object-description-technical-attribute-unit", "rpm");
+		this.selectMap.put("css=.csc-object-description-dimension-unit", "minutes");
+		this.selectMap.put("css=.csc-object-description-dimension", "length");
+		this.selectMap.put("css=.csc-object-description-dimension-part", "image size");
+		this.selectMap.put("css=.csc-object-description-content-language", "Swahili");
+		this.selectMap.put("css=.csc-object-description-content-script", "Roman cursive");
+		this.selectMap.put("css=.csc-object-description-content-object-type", "Furniture");
+		this.selectMap.put("css=.csc-object-description-content-position", "front");
+		this.selectMap.put("css=.csc-object-description-inscription-content-language", "Korean");
+		this.selectMap.put("css=.csc-object-description-inscription-content-position", "inside");
+		this.selectMap.put("css=.csc-object-description-inscription-content-script", "Roman cursive");
+		this.selectMap.put("css=.csc-object-description-inscription-content-type", "estate stamp");
+		this.selectMap.put("css=.csc-object-description-inscription-description-position", "outside");
+		this.selectMap.put("css=.csc-object-description-inscription-description-type", "maker's mark");
+		this.selectMap.put("css=.csc-object-description-inscription-description-type", "estate stamp");
+		this.selectMap.put("css=.csc-object-history-association-access", "open");
+		this.selectMap.put("css=.csc-object-history-association-category", "public");
+		this.selectMap.put("css=.csc-object-history-association-denomination", "Euro");
+		this.selectMap.put("css=.csc-object-history-association-exchange-method", "purchase");
+		this.selectMap.put("css=.csc-collection-object-fieldCollectionMethod", "purchased");
+                this.selectMap.put("css=.csc-object-description-age-qualifier", "older than");
+                                
 		this.fieldMap.put("repeat::.csc-object-identification-brief-description", "Auch, cataloging.. Loooooooong way to go");
 		this.fieldMap.put(".csc-object-identification-distinguishing-features", "It's a biiiiig page with lots of fields");
 		this.fieldMap.put("repeat::.csc-object-identification-comments", "Ugh, and I'm at third textarea");
-		this.fieldMap.put(".csc-object-identification-number-objects", "probably 800");
+		this.fieldMap.put(".csc-object-identification-number-objects", "800");
 		this.fieldMap.put("repeat::.csc-object-identification-other-number", "ok, 801");
 		this.fieldMap.put("repeat::.csc-object-identification-object-title", "the is cataloging");
 		this.fieldMap.put("repeat::.csc-object-identification-object-title-translation", "cataloooooging");
@@ -159,8 +163,7 @@ public class Record {
 		this.fieldMap.put("repeat::.csc-object-identification-object-note", "Objects have lots of fields");
 		this.fieldMap.put(".csc-object-description-copy-number", "woohoo, second box");
 		this.fieldMap.put(".csc-object-description-edition-number", "second field of second box");
-		this.fieldMap.put(".csc-object-description-age", "about 2 years");
-		this.fieldMap.put(".csc-object-description-age-qualifier", "cause i say so");
+		this.fieldMap.put(".csc-object-description-age", "2");
 		this.fieldMap.put("repeat::.csc-object-description-style", "biiiig");
 		this.fieldMap.put("repeat::.csc-object-description-color", "gray/whitish");
 		this.fieldMap.put("repeat::.csc-object-description-material", "Computer");
@@ -171,7 +174,7 @@ public class Record {
 		this.fieldMap.put(".csc-object-description-physical-description", "very biiiig");
 		this.fieldMap.put("repeat::.csc-object-description-object-component-information", "yes, please");
 		this.fieldMap.put(".csc-collection-object-dimensionSummary", "I said it was huuuuge");
-		this.fieldMap.put("repeat::.csc-object-description-dimension-value", "1000");
+		this.fieldMap.put("repeat::.csc-object-description-dimension-value", "1000.0");
 		this.fieldMap.put("repeat::.csc-object-description-dimension-value-qualifier", "no way");
 		this.fieldMap.put(".csc-object-description-content-description", "Just a lot of fields");
 		this.fieldMap.put("repeat::.csc-object-description-content-activity", "fill them out for testing");
@@ -237,7 +240,7 @@ public class Record {
 		this.fieldMap.put("repeat::.csc-collection-object-usageNote", "down here");
 		this.fieldMap.put(".csc-object-history-association-ownership-place", "Japan");
 		this.fieldMap.put(".csc-object-history-association-exchange-note", "note here");
-		this.fieldMap.put(".csc-object-history-association-exchange-price-value", "and price - 20000000000000");
+		this.fieldMap.put(".csc-object-history-association-exchange-price-value", "2000000.87");
 		this.fieldMap.put(".csc-object-owner-experience", "almost at the end of this form");
 		this.fieldMap.put(".csc-object-owner-response", "Congratulations");
 		this.fieldMap.put("repeat::.csc-object-owner-reference", "so close");
@@ -253,7 +256,8 @@ public class Record {
 		this.fieldMap.put("repeat::.csc-collection-object-fieldColEventName", "Oooooh, three left");
 		this.fieldMap.put(".csc-collection-object-fieldCollectionNote", "Sooooooo close");
 		this.fieldMap.put(".csc-collection-object-fieldCollectionNumber", "Congratulations!");
-		this.dateMap.put("repeat::.csc-object-description-dimension-value-date", "2011-05-01");
+		
+                this.dateMap.put("repeat::.csc-object-description-dimension-value-date", "2011-05-01");
 		this.dateMap.put(".csc-object-description-content-date", "2011-05-02");
 		this.dateMap.put(".csc-object-description-inscription-content-date", "2011-05-03");
 		this.dateMap.put(".csc-object-description-inscription-description-date", "2011-05-04");
@@ -291,13 +295,13 @@ public class Record {
 		this.dateMap.put(".csc-intake-insurance-renewal-date", "2011-05-02");
 		this.dateMap.put(".csc-intake-location-date", "2011-05-01");
 		this.dateMap.put(".csc-intake-condition-check-date", "2011-05-06");
-		this.selectMap.put(".csc-intake-entry-reason-selection", "Consideration");
-		this.selectMap.put("repeat::.csc-intake-entryMethod", "Post");
-		this.selectMap.put("repeat::.csc-intake-fieldCollectionMethod", "netted");
-		this.selectMap.put("repeat::.csc-intake-current-location-fitness-selection", "Dangerous");
-		this.selectMap.put("repeat::.csc-intake-conditionCheckMethod", "Observed");
-		this.selectMap.put("repeat::.csc-intake-conditionCheckReason", "Consideration");
-		this.selectMap.put("repeat::.csc-intake-conditionCheckReason", "Conservation");
+		this.selectMap.put("css=.csc-intake-entry-reason", "Consideration");
+		this.selectMap.put("css=.csc-intake-entryMethod", "Post");
+		this.selectMap.put("css=.csc-intake-fieldCollectionMethod", "exchanged");
+		this.selectMap.put("css=.csc-intake-current-location-fitness", "Dangerous");
+		this.selectMap.put("css=.csc-intake-conditionCheckMethod", "Observed");
+		this.selectMap.put("css=.csc-intake-conditionCheckReason", "Consideration");
+		this.selectMap.put("css=.csc-intake-conditionCheckReason", "Conservation");
 		this.fieldMap.put(".csc-intake-entry-note", "Random entry note here");
 		this.fieldMap.put(".csc-intake-packing-note", "Some packing note goes here");
 		this.fieldMap.put(".csc-intake-depositor-requirements", "Always Requirements... sigh");
@@ -308,9 +312,6 @@ public class Record {
 		this.fieldMap.put(".csc-intake-insurance-reference-number", "..And yet another reference number");
 		this.fieldMap.put(".csc-intake-insurance-policy-number", "1234567890 and then some");
 		this.fieldMap.put(".csc-intake-insurance-note", "Too expensive to be insured");
-		this.fieldMap.put("repeat::.csc-intake-current-location", "Under the bridge");
-		this.fieldMap.put("repeat::.csc-intake-current-location-note", "Beware of trolls");
-		this.fieldMap.put(".csc-intake-normal-location", "The Moon");
 		this.fieldMap.put(".csc-intake-condition-check-reference-number", "855-check cond-10101010101");
 		this.fieldMap.put(".csc-intake-condition-check-note", "Looks fine and dandy");
 		this.fieldMap.put("repeat::.csc-intake-field-collection-event-name", "Ooooops, thought I forgot this one?!");
@@ -321,8 +322,27 @@ public class Record {
 		this.vocabMap.put(".csc-intake-valuer", "VOCAB");
 		this.vocabMap.put("repeat::.csc-intake-insurer", "VOCAB");
 		this.vocabMap.put("repeat::.csc-intake-conditionCheckerOrAssessor", "VOCAB");
+                this.vocabMap.put("repeat::.csc-intake-current-location", "VOCAB");
+		this.vocabMap.put("repeat::.csc-intake-current-location-note", "VOCAB");
+                this.vocabMap.put(".csc-intake-normal-location", "VOCAB");
                 break;
 
+            case GROUP:
+                this.url = "group.html";
+                this.shortname = "group";
+                this.longname = "Group";
+                this.IDFieldSelector = ".csc-group-title";
+                this.requiredFieldSelector = ".csc-group-title";
+                this.requiredFieldMessage = "Please specify a Title";
+                this.generatedPostfix = " - title";
+
+		this.fieldMap.put(".csc-group-scopeNote", "Skopey Skopey");
+
+                this.selectMap.put("css=.csc-group-responsibleDepartment", "Antiquities");
+
+                this.vocabMap.put(".csc-group-owner", "VOCAB");
+                break;
+                
             case LOAN_IN:
                 this.url = "loanin.html";
                 this.shortname = "loanin";
@@ -335,7 +355,7 @@ public class Record {
 		this.fieldMap.put(".csc-loanIn-loanInNote", "Some Loan in Note");
 		this.fieldMap.put(".csc-loanIn-loanInConditions", "Some Conditions");
 
-                this.selectMap.put(".csc-loanIn-loanPurpose-selection", "Photography");
+                this.selectMap.put("css=.csc-loanIn-loanPurpose", "Photography");
 
                 this.vocabMap.put("repeat::.csc-loanIn-lendersContact", "VOCAB");
 		this.vocabMap.put("repeat::.csc-loanIn-lender", "VOCAB");
@@ -376,8 +396,8 @@ public class Record {
                 this.vocabMap.put(".csc-loanOut-lendersAuthorizer", "VOCAB");
                 this.vocabMap.put(".csc-loanOut-lendersContact", "VOCAB");
 
-                this.selectMap.put(".csc-loanOut-loanPurpose-selection", "Analysis");
-                this.selectMap.put("repeat::.csc-loanOut-loanedObjectStatus-selection", "Photography requested");
+                this.selectMap.put("css=.csc-loanOut-loanPurpose", "Analysis");
+                this.selectMap.put("css=.csc-loanOut-loanedObjectStatus", "Photography requested");
                 break;
               
             case ACQUISITION:
@@ -390,15 +410,15 @@ public class Record {
                 this.generatedPostfix = " - acquisitionReferenceNumber";
 
                 this.fieldMap.put(".csc-acquisition-transfer-of-title-number", "Title Number");
-                this.fieldMap.put(".csc-acquisition-group-purchase-price-value", "Price Value");
-                this.fieldMap.put(".csc-acquisition-object-offer-price-value", "Offer Price");
-                this.fieldMap.put(".csc-acquisition-object-purchase-offer-price-value", "Purchase Offer price");
-                this.fieldMap.put(".csc-acquisition-object-purchase-price-value", "purchase price val");
-                this.fieldMap.put(".csc-acquisition-original-object-purchase-price-value", "obj Purchase price");
+                this.fieldMap.put(".csc-acquisition-group-purchase-price-value", "45.12");
+                this.fieldMap.put(".csc-acquisition-object-offer-price-value", "12.98");
+                this.fieldMap.put(".csc-acquisition-object-purchase-offer-price-value", "43.32");
+                this.fieldMap.put(".csc-acquisition-object-purchase-price-value", "43.3");
+                this.fieldMap.put(".csc-acquisition-original-object-purchase-price-value", "1200.0");
                 this.fieldMap.put(".csc-acquisition-acquisition-reason", "Cause I wanted it");
                 this.fieldMap.put(".csc-acquisition-acquisition-note", "Here I put my notes");
                 this.fieldMap.put(".csc-acquisition-acquisition-provisos", "Yes Please");
-                this.fieldMap.put("repeat::.csc-acquisition-acquisitionFundingValue", "lots");
+                this.fieldMap.put("repeat::.csc-acquisition-acquisitionFundingValue", "12.32");
                 this.fieldMap.put("repeat::.csc-acquisition-acquisitionFundingSourceProvisos", "Sure");
                 this.fieldMap.put(".csc-acquisition-creditLine", "also yes");
                 this.fieldMap.put("repeat::.csc-acquisition-fieldCollectionEventName", "Abracadabre");
@@ -412,13 +432,13 @@ public class Record {
                 this.vocabMap.put("repeat::.csc-acquisition-owner", "VOCAB");
                 this.vocabMap.put("repeat::.csc-acquisition-acquisitionFundingSource", "VOCAB");
 
-                this.selectMap.put(".csc-acquisition-acquisition-method-selection", "Exchange");
-                this.selectMap.put(".csc-acquisition-group-purchase-price-currency-selection", "Euro");
-                this.selectMap.put(".csc-acquisition-object-offer-price-currency-selection", "Pound Sterling");
-                this.selectMap.put(".csc-acquisition-object-purchase-offer-price-currency-selection", "Danish Krone");
-                this.selectMap.put(".csc-acquisition-object-purchase-price-currency-selection", "Danish Krone");
-                this.selectMap.put(".csc-acquisition-original-object-purchase-price-currency-selection", "Canadian Dollar");
-                this.selectMap.put("repeat::.csc-acquisition-acquisitionFundingCurrency-selection", "Danish Krone");
+                this.selectMap.put("css=.csc-acquisition-acquisition-method", "Exchange");
+                this.selectMap.put("css=.csc-acquisition-group-purchase-price-currency", "Euro");
+                this.selectMap.put("css=.csc-acquisition-object-offer-price-currency", "Pound Sterling");
+                this.selectMap.put("css=.csc-acquisition-object-purchase-offer-price-currency", "Danish Krone");
+                this.selectMap.put("css=.csc-acquisition-object-purchase-price-currency", "Danish Krone");
+                this.selectMap.put("css=.csc-acquisition-original-object-purchase-price-currency", "Canadian Dollar");
+                this.selectMap.put("css=.csc-acquisition-acquisitionFundingCurrency", "Danish Krone");
                 break;
                                 
             case MOVEMENT:
@@ -438,9 +458,9 @@ public class Record {
 		this.fieldMap.put(".csc-movement-movementNote", "Another random note");
                 this.fieldMap.put(".csc-movement-currentLocation", "some ref number");                
                 
-		this.selectMap.put(".csc-movement-currentLocationFitness-selection", "Temporary");
-		this.selectMap.put("repeat::.csc-movement-movementMethods", "Handcarried");
-		this.selectMap.put(".csc-movement-reasonForMove-selection", "Inventory");
+		this.selectMap.put("css=.csc-movement-currentLocationFitness", "Temporary");
+		this.selectMap.put("css=.csc-movement-movementMethods", "Handcarried");
+		this.selectMap.put("css=.csc-movement-reasonForMove", "Inventory");
 
                 this.vocabMap.put(".csc-movement-normalLocation", "VOCAB");		
 		this.vocabMap.put(".csc-movement-movementContact", "VOCAB");
@@ -459,7 +479,7 @@ public class Record {
 		this.dateMap.put("repeat::.csc-media-date", "2011-05-02");
 		this.fieldMap.put(".csc-media-title", "Mediarrrrgh");
 		this.fieldMap.put(".csc-media-dimensionSummary", "No clue");
-		this.fieldMap.put("repeat::.csc-media-value", "22");
+		this.fieldMap.put("repeat::.csc-media-value", "22.0");
 		this.fieldMap.put("repeat::.csc-media-valueQualifier", "karat?");
 		this.fieldMap.put(".csc-media-coverage", "All over");
 		this.fieldMap.put(".csc-media-source", "Someone somewhere in the mountains");
@@ -467,11 +487,13 @@ public class Record {
 		this.fieldMap.put("repeat::.csc-media-subject", "Got no idea");
 		this.fieldMap.put(".csc-media-copyrightStatement", "Use at will");
 		this.fieldMap.put(".csc-media-description", "This is some random media ...");
-		this.selectMap.put("repeat::.csc-media-dimension-selection", "Running Time");
-		this.selectMap.put("repeat::.csc-media-measurementMethod-selection", "Protractor");
-		this.selectMap.put("repeat::.csc-media-measurementUnit-selection", "Millimeters");
-		this.selectMap.put("repeat::.csc-media-type", "Document");
-		this.selectMap.put("repeat::.csc-media-language", "Russian");
+                
+		this.selectMap.put("css=.csc-media-dimension", "Running Time");
+		this.selectMap.put("css=.csc-media-measurementMethod", "Protractor");
+		this.selectMap.put("css=.csc-media-measurementUnit", "Millimeters");
+		this.selectMap.put("css=.csc-media-type", "Document");
+		this.selectMap.put("css=.csc-media-language", "Russian");
+                
 		this.vocabMap.put("repeat::.csc-media-measuredBy", "VOCAB");
 		this.vocabMap.put(".csc-media-contributor", "VOCAB");
 		this.vocabMap.put(".csc-media-creator", "VOCAB");
@@ -493,8 +515,8 @@ public class Record {
                 this.fieldMap.put(".csc-objectexit-exitNote", "Goodbye birdie");
 		this.fieldMap.put(".csc-objectexit-packingNote", "Foam and Cardboard");
 
-                this.selectMap.put(".csc-objectexit-exitReason-selection", "Disposal");
-		this.selectMap.put("repeat::.csc-objectexit-exitMethods", "In Person");
+                this.selectMap.put("css=.csc-objectexit-exitReason", "Disposal");
+		this.selectMap.put("css=.csc-objectexit-exitMethods", "In Person");
 
                 this.vocabMap.put(".csc-objectexit-currentOwner", "VOCAB");
 		this.vocabMap.put(".csc-objectexit-depositor", "VOCAB");

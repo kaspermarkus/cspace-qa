@@ -25,16 +25,17 @@ public class Utilities {
      * @throws Exception
      */
     public static void login(Selenium selenium) throws Exception {
-        System.out.println("Logging in...");
+        System.out.println("Running login function...");
         selenium.open(LOGIN_URL);
         selenium.waitForPageToLoad(MAX_WAIT);
+        elementPresent("//input[@value='Sign In']", selenium);
         log("LOGIN: logging in as admin\n");
-        selenium.type("userid", LOGIN_USER);
-        selenium.type("password", LOGIN_PASS);
+        selenium.type("name=userid", LOGIN_USER);
+        selenium.type("name=password", LOGIN_PASS);
         selenium.click("//input[@value='Sign In']");
         selenium.waitForPageToLoad(MAX_WAIT);
         if (selenium.getLocation().equals(BASE_URL + LOGIN_URL)) {
-		System.out.println("Not logged in yet, trying again");
+            log("Not logged in yet, trying again");
             Thread.sleep(10000);
             selenium.type("userid", LOGIN_USER);
             selenium.type("password", LOGIN_PASS);
@@ -42,6 +43,7 @@ public class Utilities {
             selenium.waitForPageToLoad(MAX_WAIT);
         }
         assertEquals(BASE_URL + LOGIN_REDIRECT, selenium.getLocation());
+        System.out.println("Logged in");
     }
 
     /**
@@ -67,7 +69,7 @@ public class Utilities {
         System.out.println("found search result");
         //go to the record again:
         selenium.click("link=" + primaryID);
-        waitForRecordLoad(selenium);
+        waitForRecordLoad(primaryType, selenium);
     }
 
     /**
@@ -76,21 +78,37 @@ public class Utilities {
      * @throws Exception 
      */
     public static String getLocationURN(Selenium selenium) throws Exception {
-        selenium.open("/collectionspace/chain/" + Record.getRecordTypeShort(Record.MOVEMENT) + "/generator?quantity=1");
+        selenium.setTimeout(""+(Integer.parseInt(MAX_WAIT)*3));
+        selenium.open("/collectionspace/tenant/core/" + Record.getRecordTypeShort(Record.MOVEMENT) + "/generator?quantity=1");        
         //wait for record to be generated
-        textPresent("created movement with csid of", selenium);
+        //"created movement with csid of " format
+//////////        textPresent("created movement with csid of", selenium, MAX_WAIT_SEC*3);
+//////////        selenium.setTimeout(MAX_WAIT);
+//////////        //get the entire source:        
+//////////        String source = selenium.getBodyText();
+//////////        System.out.println("RAWSOURCE: " + source);
+//////////        //find csid:
+//////////        Pattern linkElementPattern = Pattern.compile("created movement with csid of: (.*)\n");
+//////////        Matcher linkElementMatcher = linkElementPattern.matcher(source);
+//////////        linkElementMatcher.find();
+//////////        String csid = linkElementMatcher.group(1);
+//////////        System.out.println("CSID" + csid);
+        
+        //"{"movement":{"0":"303029fd-2e53-48bd-b28a"}}" format
+        textPresent("{\"movement\":{\"0\":\"", selenium, MAX_WAIT_SEC*3);
+        selenium.setTimeout(MAX_WAIT);
         //get the entire source:        
         String source = selenium.getBodyText();
-        System.out.println("RAWSOURCE: " + source);
+        //System.out.println("RAWSOURCE: " + source);
         //find csid:
-        Pattern linkElementPattern = Pattern.compile("created movement with csid of: (.*)\n");
+        Pattern linkElementPattern = Pattern.compile("\\{\"movement\":\\{\"0\":\"(.*)\"\\}\\}");
         Matcher linkElementMatcher = linkElementPattern.matcher(source);
         linkElementMatcher.find();
         String csid = linkElementMatcher.group(1);
-        System.out.println("CSID" + csid);
+        System.out.println("CSID of new movement record: " + csid);
         //open the record by typing the URL directly
         selenium.open(Record.getUrl(Record.MOVEMENT) + "?csid=" + csid);
-        waitForRecordLoad(selenium);
+        waitForRecordLoad(Record.MOVEMENT, selenium);
         //finally get the URN for the location authority
         String urn = selenium.getValue(Record.getRequiredFieldSelector(Record.MOVEMENT));
         return urn;
@@ -106,11 +124,13 @@ public class Utilities {
      * @throws Exception
      */
     public static String generateRecord(int recordType, Selenium selenium) throws Exception {
+        selenium.setTimeout(""+(Integer.parseInt(MAX_WAIT)*3)); //hack to handle slow generator                
         long timestamp = (new Date().getTime());
-        System.out.println("generating record with: /collectionspace/chain/" + Record.getRecordTypeShortChain(recordType) + "/generator?quantity=1&startvalue=0&extraprefix=" + timestamp);
-        selenium.open("/collectionspace/chain/" + Record.getRecordTypeShort(recordType) + "/generator?quantity=1&startvalue=0&extraprefix=" + timestamp);
+        log("generating record with: /collectionspace/chain/" + Record.getRecordTypeShortChain(recordType) + "/generator?quantity=1&startvalue=0&extraprefix=" + timestamp);
+        selenium.open("/collectionspace/tenant/core/" + Record.getRecordTypeShort(recordType) + "/generator?quantity=1&startvalue=0&extraprefix=" + timestamp);
         String generatedID = timestamp + "0" + Record.getGeneratedPostfix(recordType);
         textPresent("created " + Record.getRecordTypeShortChain(recordType) + " with csid of:", selenium);
+        selenium.setTimeout(MAX_WAIT);
         return generatedID;
     }
 
@@ -126,7 +146,7 @@ public class Utilities {
     public static void save(Selenium selenium) throws Exception {
         //save record
         selenium.click("//input[@value='Save']");
-        textPresent("successfully", selenium);
+        waitForRecordSave(selenium);
     }
 
     /**
@@ -163,7 +183,7 @@ public class Utilities {
     public static void createAndSave(int recordType, String requiredValue, Selenium selenium) throws Exception {
         //create new
         selenium.open(Record.getRecordTypeShort(recordType) + ".html");
-        waitForRecordLoad(selenium);
+        waitForRecordLoad(recordType, selenium);
         assertEquals(Record.getRecordTypePP(recordType), selenium.getText("css=#title-bar .record-type"));
         selenium.type(Record.getIDSelector(recordType), requiredValue);
         //make sure required field is filled out:
@@ -172,7 +192,7 @@ public class Utilities {
         }
         //and save
         selenium.click("//input[@value='Save']");
-        textPresent("successfully", selenium);
+        waitForRecordSave(selenium);
     }
 
     /**
@@ -208,7 +228,7 @@ public class Utilities {
         selenium.click("//input[@value='Add record']");
         elementPresent("css=" + dialogSelector + " :input[value='Create']", selenium);
         selenium.click("css=" + dialogSelector + " :input[value='Create']");
-        waitForRecordLoad(selenium);
+        waitForRecordLoad(secondaryType, selenium);
     }
 
     /**
@@ -221,29 +241,13 @@ public class Utilities {
      */
     public static void openRelatedOfCurrent(int secondaryType, String secondaryID, Selenium selenium) throws Exception {
         textPresent(secondaryID, selenium);
-        int rowCount = 0;
         //System.out.println("textpresent: " + secondaryID);
-        String selector = "row::column:-1";
+        String selector = "css=.csc-relatedRecordsTab-"+Record.getRecordTypeShort(secondaryType) +" .csc-recordList-row span:contains(\""+secondaryID+"\")";
         //System.out.println("checking whether " + selector + " is present" + selenium.isElementPresent(selector));
         elementPresent(selector, selenium);
-        //System.out.println("checking whether " + selector + " is present" + selenium.isElementPresent(selector));
-        while (selenium.isElementPresent(selector)) {
-            //System.out.println("found " + selector);
-            if (secondaryID.equals(selenium.getText(selector))) {
-                System.out.println("Found related record with text: '" + selenium.getText(selector) + "'");
-                selenium.click(selector);
-                waitForRecordLoad(secondaryType, selenium);
-                return;
-            }
-            //System.out.println("didn't match text: '" + selenium.getText(selector) + "'");
-            rowCount++;
-            selector = "row:" + rowCount + ":column:-1";
-            //System.out.println("checking whether " + selector + " is present" + selenium.isElementPresent(selector));
-        }
-        assertTrue("Error when opening related record - couldn't find " + secondaryID, false);
+        selenium.click(selector);
+        waitForRecordLoad(secondaryType, selenium);
     }
-
-    ;
 
     public static void openRelatedOf(int primaryType, String primaryID, int secondaryType, String secondaryID, Selenium selenium) throws Exception {
         open(primaryType, primaryID, selenium);
@@ -269,7 +273,7 @@ public class Utilities {
      * @throws Exception
      */
     public static void navigateWarningClose(int primaryType, String modifiedID, Selenium selenium) throws Exception {
-        waitForRecordLoad(selenium);
+        waitForRecordLoad(primaryType, selenium);
         //edit a field (ID field)
         selenium.type(Record.getIDSelector(primaryType), modifiedID);
         //navigate away
@@ -302,7 +306,7 @@ public class Utilities {
      * @throws Exception
      */
     public static void navigateWarningSave(int primaryType, String modifiedID, Selenium selenium) throws Exception {
-        waitForRecordLoad(selenium);
+        waitForRecordLoad(primaryType, selenium);
         //edit field (ID field)
         selenium.type(Record.getIDSelector(primaryType), modifiedID);
         //Search for our ID (should cause warning too)
@@ -336,14 +340,15 @@ public class Utilities {
      * @throws Exception
      */
     public static void navigateWarningDontSave(int primaryType, String modifiedID, Selenium selenium) throws Exception {
-        waitForRecordLoad(selenium);
+        waitForRecordLoad(primaryType, selenium);
         //edit ID field
         selenium.type(Record.getIDSelector(primaryType), modifiedID);
         //navigate away, wait for dialog and click dont save:
         selenium.click("link=Create New");
         elementPresent("ui-dialog-title-1", selenium);
         assertTrue(selenium.isTextPresent("exact:Save Changes?"));
-        selenium.click("//input[@value=\"Don't Save\"]");
+        elementPresent("css=.csc-confirmationDialogButton-proceed", selenium);
+        selenium.click("css=.csc-confirmationDialogButton-proceed");
         //wait for page to load
         selenium.waitForPageToLoad(MAX_WAIT);
         textPresent(Record.getRecordTypePP(primaryType), selenium);
@@ -403,6 +408,19 @@ public class Utilities {
         iterator = selectMap.keySet().iterator();
         while (iterator.hasNext()) {
             String selector = iterator.next();
+            try {
+                //make sure options for select box are loaded (and not Options Not Loaded)
+                //and yes, this is indeed a very nasty xpath selector, but:
+                //The option= predicate was required to make ensure that the options were loaded                
+                //The contains predicate was required, since the options-loaded checker didn't work if several dropdowns contained the value checked for
+                //       the entire normalize, etc. was required due to multiple classes..
+                //we need class selector without "." in the beginning, so remove if present
+                String classNameOnly = selector.startsWith("css=.")?selector.substring(5):selector;
+                elementPresent("//select[contains(@class, '"+classNameOnly+"') and option='"+selectMap.get(selector)+"']", selenium);
+//                elementPresent("//select[option='"+selectMap.get(selector)+"']", selenium);
+            } catch (Exception e) {
+                System.out.println("ERROR -- ELEMENT NOT PRESENT");
+            }
             selenium.select(selector, "label=" + selectMap.get(selector));
         }
     }
@@ -465,6 +483,7 @@ public class Utilities {
             String selector = iterator.next();
             //dont expect required field to be empty:
             if (!selector.equals(Record.getRequiredFieldSelector(recordType))) {
+                System.out.println("CHECKING FIELD: "+selector);
                 assertEquals("checking for field: " + selector, "", selenium.getValue(selector));
             }
         }
@@ -473,19 +492,19 @@ public class Utilities {
         iterator = dateMap.keySet().iterator();
         while (iterator.hasNext()) {
             String selector = iterator.next();
-            assertEquals("", selenium.getValue(selector));
+            assertEquals("checking date field: "+selector, "", selenium.getValue(selector));
         }
         HashMap<String, String> vocabMap = Record.getVocabMap(recordType);
         iterator = vocabMap.keySet().iterator();
         while (iterator.hasNext()) {
             String selector = iterator.next();
-            assertEquals("", selenium.getValue(selector));
+            assertEquals("checking vocab field: "+selector, "", selenium.getValue(selector));
         }
         HashMap<String, String> selectMap = Record.getSelectMap(recordType);
         iterator = selectMap.keySet().iterator();
         while (iterator.hasNext()) {
             String selector = iterator.next();
-            assertEquals(0, Integer.parseInt(selenium.getSelectedIndex(selector)));
+            assertEquals("checking select field: "+selector, 0, Integer.parseInt(selenium.getSelectedIndex(selector)));
         }
     }
 
@@ -532,16 +551,43 @@ public class Utilities {
         iterator = selectMap.keySet().iterator();
         while (iterator.hasNext()) {
             String selector = iterator.next();
+            try {
+                //make sure options for select box are loaded (and not Options Not Loaded)
+                //and yes, this is indeed a very nasty xpath selector, but:
+                //The option= predicate was required to make ensure that the options were loaded                
+                //The contains predicate was required, since the options-loaded checker didn't work if several dropdowns contained the value checked for
+                //       the entire normalize, etc. was required due to multiple classes..
+                //we need class selector without "." in the beginning, so remove if present
+                String classNameOnly = selector.startsWith("css=.")?selector.substring(5):selector;
+                elementPresent("//select[contains(@class, '"+classNameOnly+"') and option='"+selectMap.get(selector)+"']", selenium);
+                //make sure options for select box are loaded
+//                elementPresent("//select[option='"+selectMap.get(selector)+"']", selenium);
+            } catch (Exception e) {
+                System.out.println("ERROR -- ELEMENT NOT PRESENT");
+            }
             assertEquals(selectMap.get(selector), selenium.getSelectedLabel(selector));
         }
     }
 
     public static void waitForRecordLoad(Selenium selenium) throws Exception {
         elementPresent("//input[@value='Select number pattern']", selenium);
+        
+//        elementNotPresent("//select[option='Options not loaded']", selenium);
     }
 
+    public static void waitForRecordSave(Selenium selenium) throws Exception {
+        textPresent("successfully", selenium);
+//        elementNotPresent("//select[option='Options not loaded']", selenium);
+    }
+    
     public static void waitForRecordLoad(int recordType, Selenium selenium) throws Exception {
-        waitForRecordLoad(selenium);
+        if (recordType == Record.GROUP) { //group doesn't have number picker
+            System.out.println("RECORDTYPE == GROUP");
+            elementPresent("//select[option='Decorative Arts']", selenium);
+        } else {
+            System.out.println("Recordtype: "+recordType+" ("+Record.getRecordTypePP(recordType)+" != GROUP");
+            elementPresent("//input[@value='Select number pattern']", selenium);
+        }
         elementPresent(Record.getIDSelector(recordType), selenium);
     }
 
@@ -555,7 +601,7 @@ public class Utilities {
     static final void textNotPresent(String text, Selenium selenium) throws Exception {
         for (int second = 0;; second++) {
             if (second >= MAX_WAIT_SEC) {
-                fail("timeout");
+                fail("textNotPresent: The text "+text+" stayed present - timeout");
             }
             try {
                 if (!selenium.isTextPresent(text)) {
@@ -574,10 +620,10 @@ public class Utilities {
      * @param selenium  a Selenium object to check with
      * @throws Exception
      */
-    static final void textPresent(String text, Selenium selenium) throws Exception {
+    static final void textPresent(String text, Selenium selenium, int timeout) throws Exception {
         for (int second = 0;; second++) {
-            if (second >= MAX_WAIT_SEC) {
-                fail("timeout");
+            if (second >= timeout) {
+                fail("textPresent: Unable to find text: "+text);
             }
             try {
                 if (selenium.isTextPresent(text)) {
@@ -587,6 +633,17 @@ public class Utilities {
             }
             Thread.sleep(1000);
         }
+    }
+    
+        /**
+     * Asserts that the text becomes present within MAX_WAIT_SEC
+     *
+     * @param text the text to check whether is present
+     * @param selenium  a Selenium object to check with
+     * @throws Exception
+     */
+    static final void textPresent(String text, Selenium selenium) throws Exception {
+        textPresent(text, selenium, MAX_WAIT_SEC);
     }
 
     /**
@@ -601,7 +658,7 @@ public class Utilities {
     static final void textPresent(String text, String selector, Selenium selenium) throws Exception {
         for (int second = 0;; second++) {
             if (second >= MAX_WAIT_SEC) {
-                fail("timeout");
+                fail("textPresent: Unable to find text "+text+" in field: "+selector);
             }
             try {
                 if (text.equals(selenium.getText(selector))) {
@@ -623,7 +680,7 @@ public class Utilities {
     static final void elementNotPresent(String selector, Selenium selenium) throws Exception {
         for (int second = 0;; second++) {
             if (second >= MAX_WAIT_SEC) {
-                fail("timeout");
+                fail("elementNotPresent: Element: "+selector+" stayed on page");
             }
             try {
                 if (!selenium.isElementPresent(selector)) {
@@ -645,13 +702,14 @@ public class Utilities {
     static final void elementPresent(String selector, Selenium selenium) throws Exception {
         for (int second = 0;; second++) {
             if (second >= MAX_WAIT_SEC) {
-                fail("timeout");
+                fail("elementPresent: Unable to find element "+selector);
             }
             try {
                 if (selenium.isElementPresent(selector)) {
                     break;
                 }
             } catch (Exception e) {
+                
             }
             Thread.sleep(1000);
         }
@@ -659,6 +717,5 @@ public class Utilities {
 
     public static void log(String str) {
         System.out.print(str);
-
     }
 }

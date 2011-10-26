@@ -31,10 +31,11 @@ public class PrimaryRecordTests {
             {Record.LOAN_IN},
             {Record.LOAN_OUT},
             {Record.ACQUISITION},
-            {Record.MOVEMENT},
-            {Record.MEDIA},
-            {Record.OBJECT_EXIT},
-            {Record.CATALOGING}
+            {Record.MEDIA},  
+            {Record.OBJECT_EXIT}, 
+            {Record.GROUP},
+            {Record.CATALOGING},
+            {Record.MOVEMENT}
         };
         return Arrays.asList(data);
     }
@@ -56,9 +57,9 @@ public class PrimaryRecordTests {
         //log in:
         login(selenium);
 
-        //autogenerate a movement record so that we have an urn::value to put in the required field
+        //autogenerate a movement record so that we have an urn::value to put in the required field for movement records
         String locationAuthorityURN = getLocationURN(selenium);
-        System.out.println("URN: "+locationAuthorityURN);
+        System.out.println("URN for location authority: "+locationAuthorityURN);
         Record.setField(Record.MOVEMENT, Record.getRequiredFieldSelector(Record.MOVEMENT), locationAuthorityURN);
     }
 
@@ -76,11 +77,11 @@ public class PrimaryRecordTests {
     public void testCreateNew() throws Exception {
         log("CREATE NEW: Testing creating new " + Record.getRecordTypePP(primaryType) + "\n");
         selenium.open("createnew.html");
-        textPresent(Record.getRecordTypePP(primaryType), selenium);
+        elementPresent("css=:input[value='" + Record.getRecordTypeShort(primaryType) + "']", selenium);
         selenium.click("css=:radio[value='" + Record.getRecordTypeShort(primaryType) + "']");
         selenium.click("//input[@value='Create']");
         log("CREATE NEW: expect correct record page to load and pattern chooser to show\n");
-        waitForRecordLoad(selenium);
+        waitForRecordLoad(primaryType, selenium);
         assertEquals(Record.getRecordTypePP(primaryType), selenium.getText("css=#title-bar .record-type"));
     }
 
@@ -107,7 +108,8 @@ public class PrimaryRecordTests {
         save(selenium);
         //check values:
         verifyFill(primaryType, primaryID, selenium);
-//        Thread.sleep(1000 * 30);
+        //Uncomment below for debugging - gives you 30 secs to check everything is working
+        //Thread.sleep(1000 * 30);
     }
 
     /**
@@ -129,35 +131,8 @@ public class PrimaryRecordTests {
         //generate a record
         String generatedID = generateRecord(primaryType, selenium);
         //goto some collectionspace page with a search box - and open new record
-        selenium.open("createnew.html");
-        /** FIXME FIXME FIXME 
-         * Normal open call doesn't work here, as the string we are searhing for 
-         * contains " - ", which postgresql/nuxeo cant handle.. The below SHOULD be:
-         * 
-         * open(primaryType, generatedID, selenium);
-         * 
-         * This should replace the below hack once CSPACE-4106 is fixed
-         */
-        //only search for the timestamp part:
-        String hackedGeneratedID = generatedID.split(" ")[0];
-        System.out.println("opening record of type " + Record.getRecordTypePP(primaryType));
-        elementPresent("css=.cs-searchBox .csc-searchBox-selectRecordType", selenium);
-        //Search for our ID
-        selenium.select("css=.cs-searchBox .csc-searchBox-selectRecordType", "label=" + Record.getRecordTypePP(primaryType));
-        selenium.type("css=.cs-searchBox .csc-searchBox-query", hackedGeneratedID);
-        selenium.click("css=.cs-searchBox .csc-searchBox-button");
-        System.out.println("clicking search");
-        //Expect record and only that to be found in search results (to avoid false thruths :) )
-        selenium.waitForPageToLoad(MAX_WAIT);
-        elementPresent("link=" + generatedID, selenium);
-        System.out.println("found search result");
-        //go to the record:
-        selenium.click("link=" + generatedID);
-        waitForRecordLoad(selenium);
-        /**
-         * END OF CSPACE-4106 hack
-         * FIXME FIXME FIXME
-         */
+        selenium.open("createnew.html");        
+        open(primaryType, generatedID, selenium);
         //Delete contents of all fields:
         clearForm(primaryType, selenium);
         //save record - and expect error due to missing ID
@@ -169,8 +144,7 @@ public class PrimaryRecordTests {
         selenium.type(Record.getIDSelector(primaryType), generatedID);
         //Also make sure that required field is filled out -- put generatedID in this field too
         selenium.type(Record.getRequiredFieldSelector(primaryType), generatedID);
-        selenium.click("//input[@value='Save']");
-        textPresent("successfully", selenium);
+        save(selenium);
         //check values:
         verifyClear(primaryType, selenium);
     }
@@ -199,14 +173,14 @@ public class PrimaryRecordTests {
         //test delete confirmation - Close and Cancel
         selenium.click("deleteButton");
         textPresent("Confirmation", selenium);
-        assertTrue(selenium.isTextPresent("exact:Delete this record?"));
+        assertTrue(selenium.isTextPresent("exact:Delete this "+Record.getRecordTypePP(primaryType) +"?"));
         selenium.click("//img[@alt='close dialog']");
         selenium.click("deleteButton");
         selenium.click("//input[@value='Cancel']");
         selenium.click("deleteButton");
         //Test  successfull delete
         selenium.click("css=.cs-confirmationDialog :input[value='Delete']");
-        textPresent("Record successfully deleted", selenium);
+        textPresent(Record.getRecordTypePP(primaryType) +" successfully deleted", selenium);
         selenium.click("css=.cs-confirmationDialog :input[value='OK']");
         selenium.waitForPageToLoad(MAX_WAIT);
         //expect redirect to AFTER_DELETE_URL 
@@ -274,11 +248,13 @@ public class PrimaryRecordTests {
         createAndSave(primaryType, uniqueID, selenium);
         //Test close and cancel buttons of dialog
         navigateWarningClose(primaryType, modifiedID, selenium);
+        System.out.println("CLOSE SUCCESS!!");
         //Test 'Save' button - expect it was properly saved
         navigateWarningSave(primaryType, modifiedID, selenium);
+        System.out.println("SAVE SUCCESS!!");
         //go to the record again:
         selenium.click("link=" + modifiedID);
-        waitForRecordLoad(selenium);
+        waitForRecordLoad(primaryType, selenium);
         //Test 'Dont Save' button
         navigateWarningDontSave(primaryType, uniqueID, selenium);
     }
